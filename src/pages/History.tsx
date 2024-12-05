@@ -1,6 +1,33 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { Search, SortAsc, SortDesc } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -12,69 +39,177 @@ interface ChatMessage {
 const History = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const messagesPerPage = 10;
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const { data: user } = await supabase.auth.getUser();
-        if (!user.user) return;
+  const fetchHistory = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
 
-        const { data, error } = await supabase
-          .from('medical_queries')
-          .select('*')
-          .order('created_at', { ascending: false });
+      let query = supabase
+        .from('medical_queries')
+        .select('*', { count: 'exact' });
 
-        if (error) throw error;
-        setMessages(data || []);
-      } catch (error) {
-        toast({
-          title: "Error fetching history",
-          description: "Could not load your chat history. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+      // Apply search filter if search term exists
+      if (searchTerm) {
+        query = query.or(`query.ilike.%${searchTerm}%,response.ilike.%${searchTerm}%`);
       }
-    };
 
+      // Apply sorting
+      query = query.order('created_at', { ascending: sortOrder === 'asc' });
+
+      // Apply pagination
+      const start = (currentPage - 1) * messagesPerPage;
+      query = query.range(start, start + messagesPerPage - 1);
+
+      const { data, count, error } = await query;
+
+      if (error) throw error;
+      
+      setMessages(data || []);
+      if (count) {
+        setTotalPages(Math.ceil(count / messagesPerPage));
+      }
+    } catch (error) {
+      toast({
+        title: "Error fetching history",
+        description: "Could not load your chat history. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchHistory();
-  }, [toast]);
+  }, [searchTerm, sortOrder, currentPage, toast]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
+  const LoadingSkeleton = () => (
+    <div className="space-y-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="flex flex-col gap-2">
+          <Skeleton className="h-12 w-full" />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 mt-16">
-      <h1 className="text-2xl font-bold mb-6">Chat History</h1>
-      <div className="space-y-6">
-        {messages.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No chat history yet.</p>
-        ) : (
-          messages.map((message) => (
-            <div key={message.id} className="bg-white rounded-lg shadow p-4 space-y-3">
-              <div className="space-y-1">
-                <p className="font-medium text-gray-900">You</p>
-                <p className="text-gray-600">{message.query}</p>
-              </div>
-              {message.response && (
-                <div className="space-y-1">
-                  <p className="font-medium text-gray-900">NelsonBot</p>
-                  <p className="text-gray-600">{message.response}</p>
+    <div className="max-w-7xl mx-auto px-4 py-8 mt-16">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-6">Chat History</h1>
+        
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Search in conversations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select
+            value={sortOrder}
+            onValueChange={(value: "asc" | "desc") => setSortOrder(value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by date" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="desc">
+                <div className="flex items-center gap-2">
+                  <SortDesc className="h-4 w-4" />
+                  Newest first
                 </div>
-              )}
-              <p className="text-xs text-gray-400">
-                {new Date(message.created_at).toLocaleString()}
-              </p>
-            </div>
-          ))
-        )}
+              </SelectItem>
+              <SelectItem value="asc">
+                <div className="flex items-center gap-2">
+                  <SortAsc className="h-4 w-4" />
+                  Oldest first
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {loading ? (
+        <LoadingSkeleton />
+      ) : (
+        <>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Date</TableHead>
+                  <TableHead>Question</TableHead>
+                  <TableHead>Response</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {messages.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-8">
+                      No chat history found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  messages.map((message) => (
+                    <TableRow key={message.id}>
+                      <TableCell className="font-medium">
+                        {format(new Date(message.created_at), "PPp")}
+                      </TableCell>
+                      <TableCell>{message.query}</TableCell>
+                      <TableCell>{message.response}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="mt-6">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {[...Array(totalPages)].map((_, i) => (
+                    <PaginationItem key={i + 1}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(i + 1)}
+                        isActive={currentPage === i + 1}
+                      >
+                        {i + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
