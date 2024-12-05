@@ -3,7 +3,6 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Stethoscope } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -36,7 +35,7 @@ const Index = () => {
         {/* Logo Section */}
         <div className="flex-1 flex items-center justify-center w-full">
           <img 
-            src="/lovable-uploads/8011cf96-f762-4c63-868c-23441300e73d.png" 
+            src="/lovable-uploads/691f613e-b9e0-47ea-8d4e-7f9bf728f3de.png" 
             alt="NelsonBot Logo" 
             className="w-32 h-32"
           />
