@@ -33,14 +33,14 @@ export const MenuBar = () => {
                 <MenubarContent className="min-w-[320px]">
                   <MenubarItem className="flex items-center gap-2">
                     <img 
-                      src="/lovable-uploads/691f613e-b9e0-47ea-8d4e-7f9bf728f3de.png" 
+                      src="/lovable-uploads/16cb4f6f-aec8-411b-a3e2-4e5db51158e3.png" 
                       alt="NelsonBot Logo" 
                       className="w-6 h-6"
                     />
                     <span className="font-semibold">NelsonBot</span>
                   </MenubarItem>
                   <MenubarItem className="text-sm text-gray-500">
-                    Your Medical Knowledge Assistant
+                    Your Pediatric Assistant
                   </MenubarItem>
                   <MenubarSeparator />
                   <MenubarItem 
@@ -59,8 +59,8 @@ export const MenuBar = () => {
                         variables: {
                           default: {
                             colors: {
-                              brand: '#7E69AB',
-                              brandAccent: '#6E59A5',
+                              brand: '#E91E63',
+                              brandAccent: '#D81B60',
                             }
                           }
                         },
@@ -81,13 +81,13 @@ export const MenuBar = () => {
             {/* Logo and Slogan */}
             <div className="flex items-center gap-3">
               <img 
-                src="/lovable-uploads/691f613e-b9e0-47ea-8d4e-7f9bf728f3de.png" 
+                src="/lovable-uploads/16cb4f6f-aec8-411b-a3e2-4e5db51158e3.png" 
                 alt="NelsonBot Logo" 
                 className="w-8 h-8"
               />
               <div className="hidden sm:flex flex-col">
                 <span className="font-semibold text-lg">NelsonBot</span>
-                <span className="text-xs text-gray-500">Your Medical Knowledge Assistant</span>
+                <span className="text-xs text-gray-500">Your Pediatric Assistant</span>
               </div>
             </div>
           </div>
