@@ -51,8 +51,22 @@ const Index = () => {
         <MenuBar />
         <AppSidebar />
         
-        {/* Main Content */}
-        <main className="flex-1" />
+        {/* Main Content with Branding */}
+        <main className="flex-1 relative">
+          {/* Centered Branding */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <img 
+              src="/lovable-uploads/49424ffb-3fb9-4280-8414-1bb6e5e1cd79.png" 
+              alt="NelsonAssist-AI"
+              className="w-[600px] max-w-[90%] opacity-30"
+            />
+          </div>
+
+          {/* Chat Content */}
+          <div className="relative z-10">
+            {/* Your chat messages will go here */}
+          </div>
+        </main>
 
         {/* Footer Chat Bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
