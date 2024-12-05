@@ -52,18 +52,7 @@ const Index = () => {
         <AppSidebar />
         
         {/* Main Content */}
-        <main className="flex-1 flex flex-col items-center justify-between pt-20 pb-24 px-4 max-w-7xl mx-auto w-full">
-          <div className="flex-1 flex flex-col items-center justify-center w-full gap-8 animate-fade-in">
-            <div className="text-center space-y-4 max-w-2xl">
-              <h2 className="text-3xl font-bold text-gray-800">
-                Your Medical Knowledge Assistant
-              </h2>
-              <p className="text-gray-600 text-lg">
-                Get instant access to reliable medical information and personalized health insights
-              </p>
-            </div>
-          </div>
-        </main>
+        <main className="flex-1" />
 
         {/* Footer Chat Bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
