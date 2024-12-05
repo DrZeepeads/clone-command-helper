@@ -1,208 +1,106 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { MenuBar } from "@/components/MenuBar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { useToast } from "@/hooks/use-toast";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { SearchResults } from "@/components/SearchResults";
-
-interface Message {
-  type: 'user' | 'bot';
-  content: string;
-}
-
-interface SearchResult {
-  id: string;
-  title: string;
-  content: string;
-  category: string | null;
-  chapter: string | null;
-  similarity: number;
-}
+import { AppSidebar } from "@/components/AppSidebar";
+import { MenuBar } from "@/components/MenuBar";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [message, setMessage] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    console.log('🔄 Checking authentication state...');
-    supabase.auth.onAuthStateChange((event, session) => {
-      console.log('👤 Auth state changed:', event, session?.user?.id);
-      if (session) {
-        navigate("/dashboard");
-      }
-    });
-  }, [navigate]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const handleSearch = async (query: string) => {
-    console.log('🔍 Starting search with query:', query);
-    if (!query.trim()) {
-      console.log('❌ Empty query, clearing results');
-      setSearchResults([]);
-      return;
-    }
-
-    setIsSearching(true);
     try {
-      console.log('📡 Invoking search-knowledge function...');
-      const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
+      setIsLoading(true);
+      const { data: results, error } = await supabase.functions.invoke('search-knowledge', {
         body: { query }
       });
 
-      if (searchError) {
-        console.error('❌ Error searching knowledge base:', searchError);
-        throw searchError;
-      }
-
-      if (!searchData?.results?.length) {
-        console.log('ℹ️ No results found in search');
-        toast({
-          title: "No results found",
-          description: "Try rephrasing your question or using different keywords.",
-        });
-      } else {
-        console.log(`✅ Found ${searchData.results.length} results:`, searchData.results);
-      }
-
-      setSearchResults(searchData.results || []);
-    } catch (error) {
-      console.error('❌ Error during search:', error);
-      toast({
-        title: "Search failed",
-        description: "Failed to search the knowledge base. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    console.log('📤 Starting file upload:', file.name);
-    setIsUploading(true);
-    try {
-      const { data, error } = await supabase.storage
-        .from('chat_images')
-        .upload(`${Date.now()}-${file.name}`, file);
-
       if (error) {
-        console.error('❌ Upload error:', error);
-        throw error;
+        console.error('Error searching knowledge:', error);
+        return;
       }
 
-      console.log('✅ File uploaded successfully:', data);
-      toast({
-        title: "Photo uploaded successfully",
-        description: "Your image has been attached to the message.",
-      });
+      setSearchResults(results?.results || []);
     } catch (error) {
-      console.error('❌ File upload failed:', error);
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your photo.",
-        variant: "destructive",
-      });
+      console.error('Error in search:', error);
     } finally {
-      setIsUploading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!message.trim()) return;
-
-    console.log('💬 Sending message:', message);
-    const userMessage = message;
-    setMessage("");
-    setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
-    setIsLoading(true);
-
+  const handleSendMessage = async (message: string) => {
     try {
-      await handleSearch(userMessage);
-      
-      console.log('🤖 Sending to medical-qa with results:', { query: userMessage, searchResults });
-      const { data, error } = await supabase.functions.invoke('medical-qa', {
+      setIsLoading(true);
+      const newMessage = { role: 'user', content: message };
+      setMessages(prev => [...prev, newMessage]);
+
+      // Search for relevant context
+      const { data: searchData } = await supabase.functions.invoke('search-knowledge', {
+        body: { query: message }
+      });
+
+      const context = searchData?.results?.map((r: any) => r.content).join('\n') || '';
+
+      // Get AI response
+      const { data: responseData, error } = await supabase.functions.invoke('medical-qa', {
         body: { 
-          query: userMessage,
-          searchResults
-        },
+          query: message,
+          context
+        }
       });
 
       if (error) {
-        console.error('❌ Error from medical-qa function:', error);
-        throw error;
+        console.error('Error getting response:', error);
+        return;
       }
 
-      console.log('✅ Received response from medical-qa:', data);
-      
-      if (!data || !data.response) {
-        throw new Error('No response received from the medical-qa function');
-      }
+      const aiMessage = { role: 'assistant', content: responseData.answer };
+      setMessages(prev => [...prev, aiMessage]);
 
-      setMessages(prev => [...prev, { type: 'bot', content: data.response }]);
     } catch (error) {
-      console.error('❌ Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to get response. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error in chat:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen w-full bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+    <div className="flex h-screen bg-background">
+      <AppSidebar />
+      
+      <div className="flex-1 flex flex-col">
         <MenuBar />
-        <AppSidebar />
         
-        <main className="flex-1 relative p-4 overflow-y-auto">
-          <div className="max-w-3xl mx-auto space-y-4 pb-24">
-            {messages.map((msg, index) => (
-              <ChatMessage key={index} type={msg.type} content={msg.content} />
-            ))}
-            {isLoading && (
-              <div className="bg-muted p-4 rounded-lg mr-auto max-w-[80%]">
-                <div className="animate-pulse flex space-x-2">
-                  <div className="h-2 w-2 bg-current rounded-full"></div>
-                  <div className="h-2 w-2 bg-current rounded-full"></div>
-                  <div className="h-2 w-2 bg-current rounded-full"></div>
-                </div>
-              </div>
-            )}
-            <SearchResults results={searchResults} isLoading={isSearching} />
-            <div ref={messagesEndRef} />
+        <div className="flex-1 flex">
+          {/* Main chat area */}
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map((message, index) => (
+                <ChatMessage key={index} message={message} />
+              ))}
+            </div>
+            
+            <div className="p-4 border-t">
+              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+            </div>
           </div>
-        </main>
 
-        <ChatInput
-          message={message}
-          setMessage={setMessage}
-          handleSendMessage={handleSendMessage}
-          handleFileUpload={handleFileUpload}
-          isLoading={isLoading}
-          isUploading={isUploading}
-        />
+          {/* Search results sidebar */}
+          <div className="w-80 border-l bg-muted/30 p-4 overflow-y-auto">
+            <div className="space-y-4">
+              <div className="font-semibold">Search Results</div>
+              <SearchResults results={searchResults} isLoading={isLoading} />
+            </div>
+          </div>
+        </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 
