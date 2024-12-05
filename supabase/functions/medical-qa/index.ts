@@ -34,10 +34,12 @@ serve(async (req) => {
       throw searchError
     }
 
+    console.log('Found knowledge base entries:', knowledgeData?.length || 0)
     const context = knowledgeData?.map(k => k.content).join('\n') || ''
-    console.log('Found context:', context)
+    console.log('Context for OpenAI:', context.substring(0, 200) + '...')
 
     // Get response from OpenAI
+    console.log('Sending request to OpenAI...')
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -63,8 +65,9 @@ serve(async (req) => {
     }
 
     const aiData = await openAIResponse.json()
+    console.log('OpenAI response received')
     const response = aiData.choices[0].message.content
-    console.log('Generated response:', response)
+    console.log('Generated response:', response.substring(0, 200) + '...')
 
     // Store the Q&A interaction
     const { error: insertError } = await supabaseClient

@@ -77,7 +77,12 @@ const Index = () => {
         throw error;
       }
 
-      console.log('Received response:', data);
+      console.log('Received response from medical-qa:', data);
+      
+      if (!data || !data.response) {
+        throw new Error('No response received from the medical-qa function');
+      }
+
       setMessages(prev => [...prev, { type: 'bot', content: data.response }]);
     } catch (error) {
       console.error('Error sending message:', error);
