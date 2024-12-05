@@ -23,42 +23,42 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
-    // Get OpenAI API key from environment variables
-    const openAIKey = Deno.env.get('OPENAI_API_KEY')
-    if (!openAIKey) {
-      throw new Error('OpenAI API key not found in environment variables')
+    // Get Hugging Face API key
+    const huggingfaceKey = Deno.env.get('HUGGINGFACE_API_KEY')
+    if (!huggingfaceKey) {
+      throw new Error('Hugging Face API key not found in environment variables')
     }
 
-    // Get response from OpenAI
-    console.log('🤖 Sending request to OpenAI...')
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Prepare context from search results
+    const context = searchResults?.map(r => `${r.title}: ${r.content}`).join('\n') || 'No specific context available.'
+
+    // Get answer from Hugging Face
+    console.log('🤖 Sending request to Hugging Face...')
+    const hfResponse = await fetch('https://api-inference.huggingface.co/models/deepset/roberta-base-squad2', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIKey}`,
+        'Authorization': `Bearer ${huggingfaceKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are NelsonBot, a pediatric medical assistant. Use the following knowledge base context to help answer questions. If the context doesn't contain relevant information, use your general medical knowledge but be clear about this distinction. Always provide evidence-based answers and cite sources when possible.\n\nContext:\n${searchResults?.map(r => `${r.title}: ${r.content}`).join('\n') || 'No specific context available.'}`
-          },
-          { role: 'user', content: query }
-        ],
+        inputs: {
+          question: query,
+          context: context
+        }
       }),
     })
 
-    if (!openAIResponse.ok) {
-      const error = await openAIResponse.json()
-      console.error('❌ OpenAI API error:', error)
-      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`)
+    if (!hfResponse.ok) {
+      const error = await hfResponse.json()
+      console.error('❌ Hugging Face API error:', error)
+      throw new Error(`Hugging Face API error: ${error.error || 'Unknown error'}`)
     }
 
-    const aiData = await openAIResponse.json()
-    console.log('✅ OpenAI response received')
-    const response = aiData.choices[0].message.content
-    console.log('💬 Generated response:', response.substring(0, 200) + '...')
+    const aiData = await hfResponse.json()
+    console.log('✅ Hugging Face response received:', aiData)
+
+    // Format the response
+    const response = `Based on the available medical knowledge: ${aiData.answer}`
 
     // Store the Q&A interaction
     const { error: insertError } = await supabaseClient
