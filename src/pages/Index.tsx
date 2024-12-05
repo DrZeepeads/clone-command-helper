@@ -47,39 +47,40 @@ const Index = () => {
   }, [messages]);
 
   const handleSearch = async (query: string) => {
-    console.log('Starting search with query:', query)
+    console.log('🔍 Starting search with query:', query);
     if (!query.trim()) {
+      console.log('❌ Empty query, clearing results');
       setSearchResults([]);
       return;
     }
 
     setIsSearching(true);
     try {
-      console.log('Invoking search-knowledge function...')
+      console.log('📡 Invoking search-knowledge function...');
       const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
         body: { query }
       });
 
-      console.log('Search function response:', { searchData, searchError })
+      console.log('📊 Search function response:', { searchData, searchError });
 
       if (searchError) {
-        console.error('Error searching knowledge base:', searchError);
+        console.error('❌ Error searching knowledge base:', searchError);
         throw searchError;
       }
 
       if (!searchData?.results?.length) {
-        console.log('No results found in search')
+        console.log('ℹ️ No results found in search');
         toast({
           title: "No results found",
           description: "Try rephrasing your question or using different keywords.",
         });
       } else {
-        console.log(`Found ${searchData.results.length} results:`, searchData.results)
+        console.log(`✅ Found ${searchData.results.length} results:`, searchData.results);
       }
 
       setSearchResults(searchData.results || []);
     } catch (error) {
-      console.error('Error during search:', error);
+      console.error('❌ Error during search:', error);
       toast({
         title: "Search failed",
         description: "Failed to search the knowledge base. Please try again.",
@@ -121,10 +122,10 @@ const Index = () => {
 
     try {
       // First, search the knowledge base
-      console.log('Searching knowledge base for:', userMessage)
+      console.log('🔍 Searching knowledge base for:', userMessage);
       await handleSearch(userMessage);
       
-      console.log('Sending to medical-qa with results:', { query: userMessage, searchResults });
+      console.log('🤖 Sending to medical-qa with results:', { query: userMessage, searchResults });
       const { data, error } = await supabase.functions.invoke('medical-qa', {
         body: { 
           query: userMessage,
@@ -133,11 +134,11 @@ const Index = () => {
       });
 
       if (error) {
-        console.error('Error from medical-qa function:', error);
+        console.error('❌ Error from medical-qa function:', error);
         throw error;
       }
 
-      console.log('Received response from medical-qa:', data);
+      console.log('✅ Received response from medical-qa:', data);
       
       if (!data || !data.response) {
         throw new Error('No response received from the medical-qa function');
@@ -145,7 +146,7 @@ const Index = () => {
 
       setMessages(prev => [...prev, { type: 'bot', content: data.response }]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to get response. Please try again.",
