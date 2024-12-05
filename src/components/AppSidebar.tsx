@@ -39,12 +39,12 @@ export function AppSidebar() {
     {
       title: "Sign In",
       icon: LogIn,
-      onClick: () => navigate("/signin"),
+      onClick: () => navigate("/"),
     },
     {
       title: "Sign Up",
       icon: UserPlus,
-      onClick: () => navigate("/signup"),
+      onClick: () => navigate("/"),
     },
     {
       title: "Sign Out",
