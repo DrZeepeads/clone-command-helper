@@ -43,13 +43,20 @@
 
   <body>
     <div id="root"></div>
-    <!-- GPT Engineer script must come before main.tsx -->
+    
+    <!-- Load GPT Engineer script first with proper CORS attributes -->
     <script 
       src="https://cdn.gpteng.co/gptengineer.js" 
       type="module" 
       crossorigin="anonymous"
+      integrity="sha384-"
+      referrerpolicy="origin"
     ></script>
+    
+    <!-- Load main application script after GPT Engineer -->
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
