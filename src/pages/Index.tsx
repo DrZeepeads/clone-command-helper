@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { SearchResults } from "@/components/SearchResults";
+import { getEmbeddings } from "@/utils/modelUtils";
 
 interface Message {
   type: 'user' | 'bot';
@@ -32,6 +33,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isModelLoading, setIsModelLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,12 +60,18 @@ const Index = () => {
 
     setIsSearching(true);
     try {
+      setIsModelLoading(true);
+      const embeddings = await getEmbeddings(query);
+      console.log('✨ Generated embeddings:', embeddings);
+      setIsModelLoading(false);
+
       console.log('📡 Invoking search-knowledge function...');
       const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
-        body: { query }
+        body: { 
+          query,
+          embeddings: embeddings.tolist()
+        }
       });
-
-      console.log('📊 Search function response:', { searchData, searchError });
 
       if (searchError) {
         console.error('❌ Error searching knowledge base:', searchError);
@@ -136,15 +144,19 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      // First, search the knowledge base
-      console.log('🔍 Searching knowledge base for:', userMessage);
+      setIsModelLoading(true);
+      const embeddings = await getEmbeddings(userMessage);
+      console.log('✨ Generated embeddings for message:', embeddings);
+      setIsModelLoading(false);
+
       await handleSearch(userMessage);
       
-      console.log('🤖 Sending to medical-qa with results:', { query: userMessage, searchResults });
+      console.log('🤖 Sending to medical-qa with results:', { query: userMessage, searchResults, embeddings });
       const { data, error } = await supabase.functions.invoke('medical-qa', {
         body: { 
           query: userMessage,
-          searchResults 
+          searchResults,
+          embeddings: embeddings.tolist()
         },
       });
 
@@ -183,7 +195,7 @@ const Index = () => {
             {messages.map((msg, index) => (
               <ChatMessage key={index} type={msg.type} content={msg.content} />
             ))}
-            {isLoading && (
+            {(isLoading || isModelLoading) && (
               <div className="bg-muted p-4 rounded-lg mr-auto max-w-[80%]">
                 <div className="animate-pulse flex space-x-2">
                   <div className="h-2 w-2 bg-current rounded-full"></div>
@@ -202,7 +214,7 @@ const Index = () => {
           setMessage={setMessage}
           handleSendMessage={handleSendMessage}
           handleFileUpload={handleFileUpload}
-          isLoading={isLoading}
+          isLoading={isLoading || isModelLoading}
           isUploading={isUploading}
         />
       </div>
