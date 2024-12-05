@@ -18,17 +18,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b bg-white/80 backdrop-blur-sm fixed top-0 w-full z-10">
-        <MenuBar />
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-          NelsonBot
-        </h1>
-        <div className="w-10 h-10"></div>
-      </header>
-
+      <MenuBar />
+      
       {/* Main Content */}
-      <main className="flex flex-col items-center justify-between min-h-screen pt-16 pb-4 px-4 max-w-7xl mx-auto">
+      <main className="flex flex-col items-center justify-between min-h-screen pt-20 pb-4 px-4 max-w-7xl mx-auto">
         {/* Logo and Welcome Section */}
         <div className="flex-1 flex flex-col items-center justify-center w-full gap-8 animate-fade-in">
           <img 
