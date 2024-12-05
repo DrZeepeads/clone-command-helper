@@ -47,6 +47,7 @@ const Index = () => {
   }, [messages]);
 
   const handleSearch = async (query: string) => {
+    console.log('Starting search with query:', query)
     if (!query.trim()) {
       setSearchResults([]);
       return;
@@ -54,16 +55,28 @@ const Index = () => {
 
     setIsSearching(true);
     try {
+      console.log('Invoking search-knowledge function...')
       const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
         body: { query }
       });
+
+      console.log('Search function response:', { searchData, searchError })
 
       if (searchError) {
         console.error('Error searching knowledge base:', searchError);
         throw searchError;
       }
 
-      console.log('Search results:', searchData);
+      if (!searchData?.results?.length) {
+        console.log('No results found in search')
+        toast({
+          title: "No results found",
+          description: "Try rephrasing your question or using different keywords.",
+        });
+      } else {
+        console.log(`Found ${searchData.results.length} results:`, searchData.results)
+      }
+
       setSearchResults(searchData.results || []);
     } catch (error) {
       console.error('Error during search:', error);
@@ -108,6 +121,7 @@ const Index = () => {
 
     try {
       // First, search the knowledge base
+      console.log('Searching knowledge base for:', userMessage)
       await handleSearch(userMessage);
       
       console.log('Sending to medical-qa with results:', { query: userMessage, searchResults });

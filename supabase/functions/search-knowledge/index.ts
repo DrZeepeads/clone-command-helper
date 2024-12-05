@@ -38,6 +38,29 @@ serve(async (req) => {
     console.log('Search results:', results)
     console.log(`Found ${results?.length || 0} matching entries`)
 
+    // If no results, try a broader search
+    if (!results?.length) {
+      console.log('No results found, trying broader search...')
+      const { data: broadResults, error: broadError } = await supabaseClient
+        .from('pediatric_knowledge')
+        .select('*')
+        .textSearch('content', query, {
+          type: 'websearch',
+          config: 'english'
+        })
+        .limit(5)
+
+      if (broadError) {
+        console.error('Error in broader search:', broadError)
+      } else {
+        console.log('Broader search results:', broadResults)
+        return new Response(
+          JSON.stringify({ results: broadResults }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+
     return new Response(
       JSON.stringify({ results }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
