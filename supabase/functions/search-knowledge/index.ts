@@ -24,10 +24,10 @@ serve(async (req) => {
 
     console.log('🔄 Executing search_pediatric_knowledge function...')
     
-    // Call the search function
+    // Call the search function with the correct parameter name
     const { data: results, error } = await supabaseClient.rpc(
       'search_pediatric_knowledge',
-      { search_query: query }
+      { search_query: query }  // Match the parameter name expected by the database function
     )
 
     if (error) {
