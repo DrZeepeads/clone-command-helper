@@ -7,13 +7,17 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import { Menu } from "lucide-react";
+import { Menu, Clock } from "lucide-react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 
 export const MenuBar = () => {
   const navigate = useNavigate();
+
+  const viewHistory = () => {
+    navigate("/history");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b">
@@ -37,6 +41,14 @@ export const MenuBar = () => {
                   </MenubarItem>
                   <MenubarItem className="text-sm text-gray-500">
                     Your Medical Knowledge Assistant
+                  </MenubarItem>
+                  <MenubarSeparator />
+                  <MenubarItem 
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={viewHistory}
+                  >
+                    <Clock className="h-4 w-4" />
+                    <span>View History</span>
                   </MenubarItem>
                   <MenubarSeparator />
                   <div className="p-4">
