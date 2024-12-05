@@ -42,8 +42,9 @@ const Index = () => {
   };
 
   const handleSendMessage = async () => {
-    console.log("Handling send message:", currentMessage); // Debug log
     if (!currentMessage.trim()) return;
+    
+    console.log("Sending message:", currentMessage); // Debug log
     
     try {
       setIsLoading(true);
@@ -52,29 +53,44 @@ const Index = () => {
       setCurrentMessage("");
 
       // Search for relevant context
-      const { data: searchData } = await supabase.functions.invoke('search-knowledge', {
+      console.log("Fetching search context..."); // Debug log
+      const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
         body: { query: currentMessage }
       });
 
-      console.log("Search data for context:", searchData); // Debug log
+      if (searchError) {
+        console.error('Error getting search context:', searchError);
+        toast.error('Failed to get context');
+        return;
+      }
+
+      console.log("Search context received:", searchData); // Debug log
       const context = searchData?.results?.map((r: any) => r.content).join('\n') || '';
 
       // Get AI response
-      const { data: responseData, error } = await supabase.functions.invoke('medical-qa', {
+      console.log("Requesting AI response..."); // Debug log
+      const { data: responseData, error: aiError } = await supabase.functions.invoke('medical-qa', {
         body: { 
           query: currentMessage,
           context
         }
       });
 
-      if (error) {
-        console.error('Error getting response:', error);
+      if (aiError) {
+        console.error('Error getting AI response:', aiError);
         toast.error('Failed to get response');
         return;
       }
 
-      console.log("AI response:", responseData); // Debug log
-      const aiMessage = { type: 'bot' as const, content: responseData.answer };
+      console.log("AI response received:", responseData); // Debug log
+      
+      if (!responseData?.response) {
+        console.error('Invalid response format:', responseData);
+        toast.error('Received invalid response format');
+        return;
+      }
+
+      const aiMessage = { type: 'bot' as const, content: responseData.response };
       setMessages(prev => [...prev, aiMessage]);
 
     } catch (error) {
