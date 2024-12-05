@@ -58,7 +58,7 @@ const Index = () => {
             <img 
               src="/lovable-uploads/49424ffb-3fb9-4280-8414-1bb6e5e1cd79.png" 
               alt="NelsonAssist-AI"
-              className="w-[600px] max-w-[90%] opacity-30"
+              className="w-[300px] max-w-[80%] opacity-25 mb-4" // Adjusted size and added margin
             />
           </div>
 
