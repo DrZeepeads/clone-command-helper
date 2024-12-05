@@ -14,29 +14,14 @@ serve(async (req) => {
   }
 
   try {
-    const { query } = await req.json()
+    const { query, searchResults } = await req.json()
     console.log('Received query:', query)
+    console.log('Search results for context:', searchResults)
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
-
-    // Search knowledge base for relevant context
-    const { data: knowledgeData, error: searchError } = await supabaseClient
-      .from('pediatric_knowledge')
-      .select('content')
-      .textSearch('content', query.split(' ').join(' | '))
-      .limit(3)
-
-    if (searchError) {
-      console.error('Error searching knowledge base:', searchError)
-      throw searchError
-    }
-
-    console.log('Found knowledge base entries:', knowledgeData?.length || 0)
-    const context = knowledgeData?.map(k => k.content).join('\n') || ''
-    console.log('Context for OpenAI:', context.substring(0, 200) + '...')
 
     // Get response from OpenAI
     console.log('Sending request to OpenAI...')
@@ -51,7 +36,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are NelsonBot, a pediatric medical assistant. Use the following knowledge base context to help answer questions. If the context doesn't contain relevant information, use your general medical knowledge but be clear about this distinction. Always provide evidence-based answers and cite sources when possible.\n\nContext:\n${context}`
+            content: `You are NelsonBot, a pediatric medical assistant. Use the following knowledge base context to help answer questions. If the context doesn't contain relevant information, use your general medical knowledge but be clear about this distinction. Always provide evidence-based answers and cite sources when possible.\n\nContext:\n${searchResults.map(r => r.content).join('\n')}`
           },
           { role: 'user', content: query }
         ],
@@ -74,7 +59,8 @@ serve(async (req) => {
       .from('medical_queries')
       .insert({
         query: query,
-        response: response
+        response: response,
+        user_id: 'anonymous' // You can update this when implementing authentication
       })
 
     if (insertError) {

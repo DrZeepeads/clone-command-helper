@@ -4,11 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { MenuBar } from "@/components/MenuBar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Camera, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { ChatMessage } from "@/components/ChatMessage";
+import { ChatInput } from "@/components/ChatInput";
 
 interface Message {
   type: 'user' | 'bot';
@@ -51,7 +49,6 @@ const Index = () => {
 
     setIsUploading(true);
     try {
-      // Handle file upload logic here
       toast({
         title: "Photo uploaded successfully",
         description: "Your image has been attached to the message.",
@@ -78,7 +75,6 @@ const Index = () => {
     try {
       console.log('Searching knowledge base with query:', userMessage);
       
-      // First, search the knowledge base
       const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
         body: { query: userMessage }
       });
@@ -93,7 +89,6 @@ const Index = () => {
       console.log('Number of results found:', results.length);
       console.log('Results:', results);
 
-      // Then, get AI response using the medical-qa function
       console.log('Sending to medical-qa with results:', { query: userMessage, searchResults: results });
       const { data, error } = await supabase.functions.invoke('medical-qa', {
         body: { 
@@ -132,21 +127,10 @@ const Index = () => {
         <MenuBar />
         <AppSidebar />
         
-        {/* Main Content */}
         <main className="flex-1 relative p-4 overflow-y-auto">
           <div className="max-w-3xl mx-auto space-y-4 pb-24">
             {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "p-4 rounded-lg max-w-[80%]",
-                  msg.type === 'user' 
-                    ? "bg-primary text-primary-foreground ml-auto" 
-                    : "bg-muted mr-auto"
-                )}
-              >
-                {msg.content}
-              </div>
+              <ChatMessage key={index} type={msg.type} content={msg.content} />
             ))}
             {isLoading && (
               <div className="bg-muted p-4 rounded-lg mr-auto max-w-[80%]">
@@ -161,47 +145,14 @@ const Index = () => {
           </div>
         </main>
 
-        {/* Footer Chat Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg p-4">
-          <div className="max-w-3xl mx-auto flex gap-4 items-center">
-            <input
-              type="file"
-              id="photo-upload"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileUpload}
-              disabled={isUploading}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="flex-shrink-0"
-              onClick={() => document.getElementById('photo-upload')?.click()}
-              disabled={isUploading}
-            >
-              <Camera className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <Input
-              placeholder="Ask me anything about pediatric care..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="flex-1"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-            />
-            <Button 
-              className="flex-shrink-0"
-              onClick={handleSendMessage}
-              disabled={isLoading || !message.trim()}
-            >
-              <Send className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
+        <ChatInput
+          message={message}
+          setMessage={setMessage}
+          handleSendMessage={handleSendMessage}
+          handleFileUpload={handleFileUpload}
+          isLoading={isLoading}
+          isUploading={isUploading}
+        />
       </div>
     </SidebarProvider>
   );
