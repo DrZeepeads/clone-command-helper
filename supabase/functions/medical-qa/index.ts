@@ -23,19 +23,25 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
     // Search knowledge base for relevant context
-    const { data: knowledgeData } = await supabaseClient
+    const { data: knowledgeData, error: searchError } = await supabaseClient
       .from('pediatric_knowledge')
       .select('content')
       .textSearch('content', query.split(' ').join(' | '))
       .limit(3)
 
+    if (searchError) {
+      console.error('Error searching knowledge base:', searchError)
+      throw searchError
+    }
+
     const context = knowledgeData?.map(k => k.content).join('\n') || ''
+    console.log('Found context:', context)
 
     // Get response from OpenAI
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('JADVE_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -50,21 +56,30 @@ serve(async (req) => {
       }),
     })
 
+    if (!openAIResponse.ok) {
+      const error = await openAIResponse.json()
+      console.error('OpenAI API error:', error)
+      throw new Error('Failed to get response from OpenAI')
+    }
+
     const aiData = await openAIResponse.json()
     const response = aiData.choices[0].message.content
+    console.log('Generated response:', response)
 
     // Store the Q&A interaction
     if (userId) {
-      await supabaseClient
+      const { error: insertError } = await supabaseClient
         .from('medical_queries')
         .insert({
           user_id: userId,
           query: query,
           response: response
         })
-    }
 
-    console.log('Generated response:', response)
+      if (insertError) {
+        console.error('Error storing query:', insertError)
+      }
+    }
 
     return new Response(
       JSON.stringify({ response }),
