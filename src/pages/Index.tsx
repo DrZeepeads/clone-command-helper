@@ -15,6 +15,15 @@ interface Message {
   content: string;
 }
 
+interface SearchResult {
+  id: string;
+  title: string;
+  content: string;
+  category: string | null;
+  chapter: string | null;
+  similarity: number;
+}
+
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -67,9 +76,27 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      console.log('Sending message to medical-qa function:', userMessage);
+      console.log('Searching knowledge base:', userMessage);
+      
+      // First, search the knowledge base
+      const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
+        body: { query: userMessage }
+      });
+
+      if (searchError) {
+        console.error('Error searching knowledge base:', searchError);
+        throw searchError;
+      }
+
+      console.log('Search results:', searchData);
+      const results: SearchResult[] = searchData.results || [];
+
+      // Then, get AI response using the medical-qa function
       const { data, error } = await supabase.functions.invoke('medical-qa', {
-        body: { query: userMessage },
+        body: { 
+          query: userMessage,
+          searchResults: results 
+        },
       });
 
       if (error) {
