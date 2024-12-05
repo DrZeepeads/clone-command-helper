@@ -29,12 +29,28 @@ const Index = () => {
 
     setIsUploading(true);
     try {
-      // Handle file upload logic here
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chat_images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat_images')
+        .getPublicUrl(fileName);
+
       toast({
         title: "Photo uploaded successfully",
         description: "Your image has been attached to the message.",
       });
+
+      // You can use the publicUrl here to send it with the message
+      console.log('Uploaded image URL:', publicUrl);
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: "Upload failed",
         description: "There was an error uploading your photo.",
@@ -42,6 +58,23 @@ const Index = () => {
       });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    try {
+      // Here you would typically send the message to your backend
+      console.log('Sending message:', message);
+      setMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -90,8 +123,17 @@ const Index = () => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="flex-1"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSendMessage();
+                }
+              }}
             />
-            <Button className="flex-shrink-0">
+            <Button 
+              className="flex-shrink-0"
+              onClick={handleSendMessage}
+              disabled={!message.trim()}
+            >
               <Send className="h-5 w-5" />
             </Button>
           </div>
