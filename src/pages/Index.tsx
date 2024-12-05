@@ -3,12 +3,12 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Stethoscope } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate("/dashboard");
@@ -17,23 +17,33 @@ const Index = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-      <div className="w-full max-w-md space-y-8">
-        {/* Header Section */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-gray-900">
-            Welcome to NelsonBot
-          </h1>
-          <p className="text-lg text-gray-600">
-            Your Medical Knowledge Assistant
-          </p>
-          <p className="text-sm text-gray-500">
-            Please sign in with your email to access the medical knowledge base
-          </p>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="flex items-center justify-between p-4">
+        <button className="p-2">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <h1 className="text-2xl font-bold">NelsonBot</h1>
+        <div className="w-10 h-10"></div> {/* Placeholder for symmetry */}
+      </header>
+
+      {/* Main Content */}
+      <main className="flex flex-col items-center justify-between h-[calc(100vh-64px)]">
+        {/* Logo Section */}
+        <div className="flex-1 flex items-center justify-center w-full">
+          <img 
+            src="/lovable-uploads/8011cf96-f762-4c63-868c-23441300e73d.png" 
+            alt="NelsonBot Logo" 
+            className="w-32 h-32"
+          />
         </div>
 
-        {/* Auth UI */}
-        <div className="bg-white p-8 rounded-xl shadow-lg">
+        {/* Auth Section - Only shown when not logged in */}
+        <div className="w-full max-w-md p-4">
           <Auth
             supabaseClient={supabase}
             appearance={{
@@ -41,17 +51,22 @@ const Index = () => {
               variables: {
                 default: {
                   colors: {
-                    brand: '#3b82f6',
-                    brandAccent: '#2563eb',
+                    brand: '#000000',
+                    brandAccent: '#333333',
                   }
                 }
-              }
+              },
+              className: {
+                container: 'auth-container',
+                button: 'auth-button',
+                input: 'auth-input',
+              },
             }}
             providers={[]}
             redirectTo={`${window.location.origin}/dashboard`}
           />
         </div>
-      </div>
+      </main>
     </div>
   );
 };
