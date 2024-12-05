@@ -23,12 +23,18 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
+    // Get OpenAI API key from environment variables
+    const openAIKey = Deno.env.get('OPENAI_API_KEY')
+    if (!openAIKey) {
+      throw new Error('OpenAI API key not found in environment variables')
+    }
+
     // Get response from OpenAI
     console.log('🤖 Sending request to OpenAI...')
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openAIKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

@@ -24,7 +24,7 @@ serve(async (req) => {
 
     console.log('🔄 Executing search_pediatric_knowledge function...')
     
-    // Call the search function
+    // Call the search function without embeddings for now
     const { data: results, error } = await supabaseClient.rpc(
       'search_pediatric_knowledge',
       { search_query: query }
@@ -35,31 +35,8 @@ serve(async (req) => {
       throw error
     }
 
-    console.log('📊 Initial search results:', results)
+    console.log('📊 Search results:', results)
     console.log(`📝 Found ${results?.length || 0} matching entries`)
-
-    // If no results, try a broader search
-    if (!results?.length) {
-      console.log('🔄 No results found, trying broader search...')
-      const { data: broadResults, error: broadError } = await supabaseClient
-        .from('pediatric_knowledge')
-        .select('*')
-        .textSearch('content', query, {
-          type: 'websearch',
-          config: 'english'
-        })
-        .limit(5)
-
-      if (broadError) {
-        console.error('❌ Error in broader search:', broadError)
-      } else {
-        console.log('📊 Broader search results:', broadResults)
-        return new Response(
-          JSON.stringify({ results: broadResults }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-    }
 
     return new Response(
       JSON.stringify({ results }),
