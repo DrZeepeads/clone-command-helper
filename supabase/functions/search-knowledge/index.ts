@@ -15,14 +15,14 @@ serve(async (req) => {
 
   try {
     const { query } = await req.json()
-    console.log('Received search query:', query)
+    console.log('🔍 Received search query:', query)
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
-    console.log('Executing search_pediatric_knowledge with query:', query)
+    console.log('🔄 Executing search_pediatric_knowledge function...')
     
     // Call the search function
     const { data: results, error } = await supabaseClient.rpc(
@@ -31,16 +31,16 @@ serve(async (req) => {
     )
 
     if (error) {
-      console.error('Error searching knowledge base:', error)
+      console.error('❌ Error searching knowledge base:', error)
       throw error
     }
 
-    console.log('Search results:', results)
-    console.log(`Found ${results?.length || 0} matching entries`)
+    console.log('📊 Initial search results:', results)
+    console.log(`📝 Found ${results?.length || 0} matching entries`)
 
     // If no results, try a broader search
     if (!results?.length) {
-      console.log('No results found, trying broader search...')
+      console.log('🔄 No results found, trying broader search...')
       const { data: broadResults, error: broadError } = await supabaseClient
         .from('pediatric_knowledge')
         .select('*')
@@ -51,9 +51,9 @@ serve(async (req) => {
         .limit(5)
 
       if (broadError) {
-        console.error('Error in broader search:', broadError)
+        console.error('❌ Error in broader search:', broadError)
       } else {
-        console.log('Broader search results:', broadResults)
+        console.log('📊 Broader search results:', broadResults)
         return new Response(
           JSON.stringify({ results: broadResults }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -66,7 +66,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error in search-knowledge function:', error)
+    console.error('❌ Error in search-knowledge function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

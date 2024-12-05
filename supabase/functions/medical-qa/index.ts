@@ -15,8 +15,8 @@ serve(async (req) => {
 
   try {
     const { query, searchResults } = await req.json()
-    console.log('Received query:', query)
-    console.log('Search results for context:', searchResults)
+    console.log('📝 Received query:', query)
+    console.log('🔍 Search results for context:', searchResults)
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -24,7 +24,7 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
     // Get response from OpenAI
-    console.log('Sending request to OpenAI...')
+    console.log('🤖 Sending request to OpenAI...')
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -36,7 +36,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are NelsonBot, a pediatric medical assistant. Use the following knowledge base context to help answer questions. If the context doesn't contain relevant information, use your general medical knowledge but be clear about this distinction. Always provide evidence-based answers and cite sources when possible.\n\nContext:\n${searchResults.map(r => r.content).join('\n')}`
+            content: `You are NelsonBot, a pediatric medical assistant. Use the following knowledge base context to help answer questions. If the context doesn't contain relevant information, use your general medical knowledge but be clear about this distinction. Always provide evidence-based answers and cite sources when possible.\n\nContext:\n${searchResults?.map(r => `${r.title}: ${r.content}`).join('\n') || 'No specific context available.'}`
           },
           { role: 'user', content: query }
         ],
@@ -45,14 +45,14 @@ serve(async (req) => {
 
     if (!openAIResponse.ok) {
       const error = await openAIResponse.json()
-      console.error('OpenAI API error:', error)
+      console.error('❌ OpenAI API error:', error)
       throw new Error('Failed to get response from OpenAI')
     }
 
     const aiData = await openAIResponse.json()
-    console.log('OpenAI response received')
+    console.log('✅ OpenAI response received')
     const response = aiData.choices[0].message.content
-    console.log('Generated response:', response.substring(0, 200) + '...')
+    console.log('💬 Generated response:', response.substring(0, 200) + '...')
 
     // Store the Q&A interaction
     const { error: insertError } = await supabaseClient
@@ -64,7 +64,7 @@ serve(async (req) => {
       })
 
     if (insertError) {
-      console.error('Error storing query:', insertError)
+      console.error('❌ Error storing query:', insertError)
     }
 
     return new Response(
@@ -72,7 +72,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error in medical-qa function:', error)
+    console.error('❌ Error in medical-qa function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
