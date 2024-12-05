@@ -35,7 +35,9 @@ const Index = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    console.log('🔄 Checking authentication state...');
     supabase.auth.onAuthStateChange((event, session) => {
+      console.log('👤 Auth state changed:', event, session?.user?.id);
       if (session) {
         navigate("/dashboard");
       }
@@ -95,13 +97,25 @@ const Index = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    console.log('📤 Starting file upload:', file.name);
     setIsUploading(true);
     try {
+      const { data, error } = await supabase.storage
+        .from('chat_images')
+        .upload(`${Date.now()}-${file.name}`, file);
+
+      if (error) {
+        console.error('❌ Upload error:', error);
+        throw error;
+      }
+
+      console.log('✅ File uploaded successfully:', data);
       toast({
         title: "Photo uploaded successfully",
         description: "Your image has been attached to the message.",
       });
     } catch (error) {
+      console.error('❌ File upload failed:', error);
       toast({
         title: "Upload failed",
         description: "There was an error uploading your photo.",
@@ -115,6 +129,7 @@ const Index = () => {
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
+    console.log('💬 Sending message:', message);
     const userMessage = message;
     setMessage("");
     setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
