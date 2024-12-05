@@ -26,6 +26,7 @@ const Index = () => {
     try {
       const newMessage = { type: 'user' as const, content: currentMessage };
       setMessages(prev => [...prev, newMessage]);
+      console.log("Updated messages after user input:", messages); // Debug log
       setCurrentMessage("");
 
       // Search for relevant context
@@ -47,6 +48,7 @@ const Index = () => {
         if (response) {
           const aiMessage = { type: 'bot' as const, content: response };
           setMessages(prev => [...prev, aiMessage]);
+          console.log("Updated messages after AI response:", messages); // Debug log
           shouldRetry = false;
         } else {
           return;
@@ -77,6 +79,8 @@ const Index = () => {
     }
   };
 
+  console.log("Current messages in state:", messages); // Debug log
+
   return (
     <SidebarProvider>
       <div className="flex h-screen bg-background">
@@ -88,7 +92,7 @@ const Index = () => {
           <div className="flex-1 flex">
             {/* Main chat area */}
             <div className="flex-1 flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 mt-16">
                 {messages.map((msg, index) => (
                   <ChatMessage 
                     key={index} 
