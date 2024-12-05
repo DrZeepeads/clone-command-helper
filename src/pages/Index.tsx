@@ -79,7 +79,7 @@ const Index = () => {
               <Camera className="h-5 w-5 text-gray-500" />
             </Button>
             <Input
-              placeholder="Type your medical question..."
+              placeholder="Type your pediatric question..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="flex-1"
