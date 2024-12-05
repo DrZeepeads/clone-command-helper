@@ -5,17 +5,17 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#7E69AB",
+  "theme_color": "#E91E63",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/lovable-uploads/691f613e-b9e0-47ea-8d4e-7f9bf728f3de.png",
+      "src": "/lovable-uploads/8980612c-e15a-471d-8381-de75ceb71c3e.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/lovable-uploads/691f613e-b9e0-47ea-8d4e-7f9bf728f3de.png",
+      "src": "/lovable-uploads/8980612c-e15a-471d-8381-de75ceb71c3e.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

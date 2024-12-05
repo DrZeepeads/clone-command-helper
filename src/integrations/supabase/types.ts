@@ -44,6 +44,36 @@ export type Database = {
           },
         ]
       }
+      pediatric_knowledge: {
+        Row: {
+          category: string | null
+          chapter: string | null
+          content: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          chapter?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          chapter?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
