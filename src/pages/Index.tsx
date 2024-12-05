@@ -16,6 +16,9 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 2000;
 
   const handleSearch = async (query: string) => {
     console.log("Handling search with query:", query); // Debug log
@@ -43,6 +46,19 @@ const Index = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleModelLoading = async () => {
+    if (retryCount >= MAX_RETRIES) {
+      toast.error('Model is still loading after multiple attempts. Please try again later.');
+      setRetryCount(0);
+      return null;
+    }
+
+    toast.info('Model is loading, retrying in a moment...');
+    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+    setRetryCount(prev => prev + 1);
+    return true;
   };
 
   const handleSendMessage = async () => {
@@ -75,40 +91,50 @@ const Index = () => {
 
       const context = searchResponse.data?.results?.map((r: any) => r.content).join('\n') || '';
 
-      // Get AI response
-      console.log("Requesting AI response..."); // Debug log
-      const aiResponse = await supabase.functions.invoke('medical-qa', {
-        body: { 
-          query: currentMessage,
-          context
-        },
-        headers: {
-          'Content-Type': 'application/json'
+      let shouldRetry = true;
+      while (shouldRetry && retryCount < MAX_RETRIES) {
+        // Get AI response
+        console.log("Requesting AI response..."); // Debug log
+        const aiResponse = await supabase.functions.invoke('medical-qa', {
+          body: { 
+            query: currentMessage,
+            context
+          },
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log("AI response full details:", aiResponse); // Debug log
+
+        if (aiResponse.error) {
+          if (aiResponse.status === 503) {
+            shouldRetry = await handleModelLoading();
+            if (!shouldRetry) return;
+            continue;
+          }
+          console.error('AI response error:', aiResponse.error);
+          toast.error('Failed to get response');
+          return;
         }
-      });
 
-      console.log("AI response full details:", aiResponse); // Debug log
+        if (!aiResponse.data?.response) {
+          console.error('Invalid AI response format:', aiResponse.data);
+          toast.error('Received invalid response format');
+          return;
+        }
 
-      if (aiResponse.error) {
-        console.error('AI response error:', aiResponse.error);
-        toast.error('Failed to get response');
-        return;
+        const aiMessage = { type: 'bot' as const, content: aiResponse.data.response };
+        setMessages(prev => [...prev, aiMessage]);
+        shouldRetry = false;
       }
-
-      if (!aiResponse.data?.response) {
-        console.error('Invalid AI response format:', aiResponse.data);
-        toast.error('Received invalid response format');
-        return;
-      }
-
-      const aiMessage = { type: 'bot' as const, content: aiResponse.data.response };
-      setMessages(prev => [...prev, aiMessage]);
 
     } catch (error) {
       console.error('Full error details:', error);
       toast.error('Failed to process message');
     } finally {
       setIsLoading(false);
+      setRetryCount(0);
     }
   };
 
