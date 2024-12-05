@@ -23,7 +23,7 @@ export const MenuBar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Left side - Menu and Logo */}
+          {/* Left side - Menu and Title */}
           <div className="flex items-center gap-4">
             <Menubar className="border-none bg-transparent">
               <MenubarMenu>
@@ -32,11 +32,6 @@ export const MenuBar = () => {
                 </MenubarTrigger>
                 <MenubarContent className="min-w-[320px]">
                   <MenubarItem className="flex items-center gap-2 p-3">
-                    <img 
-                      src="/lovable-uploads/16cb4f6f-aec8-411b-a3e2-4e5db51158e3.png" 
-                      alt="NelsonBot Logo" 
-                      className="w-8 h-8"
-                    />
                     <span className="font-semibold text-lg">NelsonBot</span>
                   </MenubarItem>
                   <MenubarItem className="text-sm text-gray-500 px-3 py-2">
@@ -73,22 +68,18 @@ export const MenuBar = () => {
                       providers={[]}
                       redirectTo={window.location.origin + "/dashboard"}
                     />
+                    <p className="text-sm text-gray-500 text-center mt-4">
+                      Don't have an account? Sign up
+                    </p>
                   </div>
                 </MenubarContent>
               </MenubarMenu>
             </Menubar>
             
-            {/* Logo and Slogan */}
-            <div className="flex items-center gap-3">
-              <img 
-                src="/lovable-uploads/16cb4f6f-aec8-411b-a3e2-4e5db51158e3.png" 
-                alt="NelsonBot Logo" 
-                className="w-10 h-10 object-contain"
-              />
-              <div className="hidden sm:flex flex-col">
-                <span className="font-semibold text-lg leading-tight">NelsonBot</span>
-                <span className="text-xs text-gray-500">Your Pediatric Assistant</span>
-              </div>
+            {/* Title and Slogan */}
+            <div className="flex flex-col">
+              <span className="font-semibold text-lg leading-tight">NelsonBot</span>
+              <span className="text-xs text-gray-500">Your Pediatric Assistant</span>
             </div>
           </div>
         </div>
