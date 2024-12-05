@@ -7,6 +7,38 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000; // 2 seconds
+
+async function retryHuggingFaceRequest(url: string, options: RequestInit, retries = MAX_RETRIES): Promise<Response> {
+  try {
+    const response = await fetch(url, options);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Hugging Face API error:', error);
+      
+      // Check if error is due to model loading
+      if (error.error?.includes('loading') && retries > 0) {
+        console.log(`Model still loading, retrying in ${RETRY_DELAY}ms... (${retries} retries left)`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return retryHuggingFaceRequest(url, options, retries - 1);
+      }
+      
+      throw new Error(error.error || 'Unknown error from Hugging Face API');
+    }
+    
+    return response;
+  } catch (error) {
+    if (retries > 0 && error.message?.includes('loading')) {
+      console.log(`Request failed, retrying in ${RETRY_DELAY}ms... (${retries} retries left)`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return retryHuggingFaceRequest(url, options, retries - 1);
+    }
+    throw error;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,9 +46,9 @@ serve(async (req) => {
   }
 
   try {
-    const { query, searchResults } = await req.json()
+    const { query, context } = await req.json()
     console.log('📝 Received query:', query)
-    console.log('🔍 Search results for context:', searchResults)
+    console.log('🔍 Using context:', context)
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -29,33 +61,31 @@ serve(async (req) => {
       throw new Error('Hugging Face API key not found in environment variables')
     }
 
-    // Prepare context from search results
-    const context = searchResults?.map(r => `${r.title}: ${r.content}`).join('\n') || 'No specific context available.'
-
-    // Get answer from Hugging Face
+    // Get answer from Hugging Face with retries
     console.log('🤖 Sending request to Hugging Face...')
-    const hfResponse = await fetch('https://api-inference.huggingface.co/models/deepset/roberta-base-squad2', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${huggingfaceKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: {
-          question: query,
-          context: context
-        }
-      }),
-    })
-
-    if (!hfResponse.ok) {
-      const error = await hfResponse.json()
-      console.error('❌ Hugging Face API error:', error)
-      throw new Error(`Hugging Face API error: ${error.error || 'Unknown error'}`)
-    }
+    const hfResponse = await retryHuggingFaceRequest(
+      'https://api-inference.huggingface.co/models/deepset/roberta-base-squad2',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${huggingfaceKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: {
+            question: query,
+            context: context || 'No specific context available.'
+          }
+        }),
+      }
+    )
 
     const aiData = await hfResponse.json()
     console.log('✅ Hugging Face response received:', aiData)
+
+    if (!aiData.answer) {
+      throw new Error('Invalid response format from Hugging Face API')
+    }
 
     // Format the response
     const response = `Based on the available medical knowledge: ${aiData.answer}`
@@ -79,10 +109,29 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error('❌ Error in medical-qa function:', error)
+    
+    // Determine appropriate status code and message
+    let status = 500
+    let message = 'An unexpected error occurred'
+    
+    if (error.message?.includes('loading')) {
+      status = 503
+      message = 'The AI model is still loading. Please try again in a few seconds.'
+    } else if (error.message?.includes('API key')) {
+      status = 500
+      message = 'Server configuration error'
+    } else if (error.message?.includes('Invalid response format')) {
+      status = 502
+      message = 'Received invalid response from AI model'
+    }
+
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: message,
+        details: error.message
+      }),
       { 
-        status: 500,
+        status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
