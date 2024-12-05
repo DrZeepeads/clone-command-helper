@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -27,7 +29,7 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { Search, SortAsc, SortDesc } from "lucide-react";
+import { Search, SortAsc, SortDesc, ArrowLeft } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -37,6 +39,7 @@ interface ChatMessage {
 }
 
 const History = () => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -103,7 +106,17 @@ const History = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 mt-16">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-6">Chat History</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-3xl font-bold">Chat History</h1>
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
