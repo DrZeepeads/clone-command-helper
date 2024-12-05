@@ -1,65 +1,22 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { SearchResults } from "@/components/SearchResults";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MenuBar } from "@/components/MenuBar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { useSearch } from "@/hooks/useSearch";
+import { Message, handleModelLoading, sendMessage } from "@/services/chatService";
 import { toast } from "sonner";
 
 const Index = () => {
   console.log("Index component initializing"); // Debug log
 
-  const [messages, setMessages] = useState<Array<{type: 'user' | 'bot', content: string}>>([]);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 2000;
-
-  const handleSearch = async (query: string) => {
-    console.log("Handling search with query:", query); // Debug log
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('search-knowledge', {
-        body: { query },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log("Search API response:", { data, error }); // Debug log
-
-      if (error) {
-        console.error('Search error details:', error);
-        toast.error('Error searching knowledge base');
-        return;
-      }
-
-      setSearchResults(data?.results || []);
-    } catch (error) {
-      console.error('Search error full details:', error);
-      toast.error('Failed to search knowledge base');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleModelLoading = async () => {
-    if (retryCount >= MAX_RETRIES) {
-      toast.error('Model is still loading after multiple attempts. Please try again later.');
-      setRetryCount(0);
-      return null;
-    }
-
-    toast.info('Model is loading, retrying in a moment...');
-    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-    setRetryCount(prev => prev + 1);
-    return true;
-  };
+  const { searchResults, isLoading, handleSearch } = useSearch();
 
   const handleSendMessage = async () => {
     if (!currentMessage.trim()) return;
@@ -74,60 +31,27 @@ const Index = () => {
 
       // Search for relevant context
       console.log("Fetching search context..."); // Debug log
-      const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
-        body: { query: currentMessage },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log("Search context response:", { data: searchData, error: searchError }); // Debug log
-
-      if (searchError) {
-        console.error('Search context error:', searchError);
-        toast.error('Failed to get context');
-        return;
-      }
-
-      const context = searchData?.results?.map((r: any) => r.content).join('\n') || '';
+      const searchResults = await handleSearch(currentMessage);
+      const context = searchResults?.map(r => r.content).join('\n') || '';
 
       let shouldRetry = true;
-      while (shouldRetry && retryCount < MAX_RETRIES) {
-        // Get AI response
-        console.log("Requesting AI response..."); // Debug log
-        const { data: aiData, error: aiError } = await supabase.functions.invoke('medical-qa', {
-          body: { 
-            query: currentMessage,
-            context
-          },
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        console.log("AI response full details:", { data: aiData, error: aiError }); // Debug log
-
-        if (aiError) {
-          const errorMessage = aiError.message || '';
-          if (errorMessage.toLowerCase().includes('loading')) {
-            shouldRetry = await handleModelLoading();
-            if (!shouldRetry) return;
-            continue;
-          }
-          console.error('AI response error:', aiError);
-          toast.error('Failed to get response');
-          return;
+      while (shouldRetry && retryCount < 3) {
+        const response = await sendMessage(currentMessage, context, retryCount);
+        
+        if (response === 'loading') {
+          shouldRetry = await handleModelLoading(retryCount);
+          if (!shouldRetry) return;
+          setRetryCount(prev => prev + 1);
+          continue;
         }
 
-        if (!aiData?.response) {
-          console.error('Invalid AI response format:', aiData);
-          toast.error('Received invalid response format');
+        if (response) {
+          const aiMessage = { type: 'bot' as const, content: response };
+          setMessages(prev => [...prev, aiMessage]);
+          shouldRetry = false;
+        } else {
           return;
         }
-
-        const aiMessage = { type: 'bot' as const, content: aiData.response };
-        setMessages(prev => [...prev, aiMessage]);
-        shouldRetry = false;
       }
 
     } catch (error) {
