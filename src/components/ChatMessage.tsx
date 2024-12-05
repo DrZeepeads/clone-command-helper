@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-interface ChatMessageProps {
+export interface ChatMessageProps {
   type: 'user' | 'bot';
   content: string;
 }

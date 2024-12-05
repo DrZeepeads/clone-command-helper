@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Camera, Send } from "lucide-react";
 
-interface ChatInputProps {
+export interface ChatInputProps {
   message: string;
   setMessage: (message: string) => void;
   handleSendMessage: () => void;
