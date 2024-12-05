@@ -24,7 +24,6 @@ const Index = () => {
     console.log("Attempting to send message:", currentMessage); // Debug log
     
     try {
-      setIsLoading(true);
       const newMessage = { type: 'user' as const, content: currentMessage };
       setMessages(prev => [...prev, newMessage]);
       setCurrentMessage("");
@@ -58,7 +57,6 @@ const Index = () => {
       console.error('Full error details:', error);
       toast.error('Failed to process message');
     } finally {
-      setIsLoading(false);
       setRetryCount(0);
     }
   };
