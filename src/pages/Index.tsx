@@ -9,6 +9,8 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { toast } from "sonner";
 
 const Index = () => {
+  console.log("Index component initializing"); // Debug log
+
   const [messages, setMessages] = useState<Array<{type: 'user' | 'bot', content: string}>>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +18,7 @@ const Index = () => {
   const [currentMessage, setCurrentMessage] = useState("");
 
   const handleSearch = async (query: string) => {
+    console.log("Handling search with query:", query); // Debug log
     try {
       setIsLoading(true);
       const { data: results, error } = await supabase.functions.invoke('search-knowledge', {
@@ -28,6 +31,7 @@ const Index = () => {
         return;
       }
 
+      console.log("Search results:", results); // Debug log
       setSearchResults(results?.results || []);
     } catch (error) {
       console.error('Error in search:', error);
@@ -38,6 +42,7 @@ const Index = () => {
   };
 
   const handleSendMessage = async () => {
+    console.log("Handling send message:", currentMessage); // Debug log
     if (!currentMessage.trim()) return;
     
     try {
@@ -51,6 +56,7 @@ const Index = () => {
         body: { query: currentMessage }
       });
 
+      console.log("Search data for context:", searchData); // Debug log
       const context = searchData?.results?.map((r: any) => r.content).join('\n') || '';
 
       // Get AI response
@@ -67,6 +73,7 @@ const Index = () => {
         return;
       }
 
+      console.log("AI response:", responseData); // Debug log
       const aiMessage = { type: 'bot' as const, content: responseData.answer };
       setMessages(prev => [...prev, aiMessage]);
 
@@ -84,8 +91,7 @@ const Index = () => {
 
     try {
       setIsUploading(true);
-      // Handle file upload logic here
-      console.log("File upload not implemented yet");
+      console.log("File upload attempted:", file.name); // Debug log
       toast.info('File upload not implemented yet');
     } catch (error) {
       console.error('Error uploading file:', error);
