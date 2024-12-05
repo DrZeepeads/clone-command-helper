@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Camera, Send } from "lucide-react";
+import { Camera, FileText, Send } from "lucide-react";
 
 interface ChatInputProps {
   message: string;
   setMessage: (message: string) => void;
   handleSendMessage: () => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handlePdfUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isLoading: boolean;
   isUploading: boolean;
 }
@@ -16,6 +17,7 @@ export const ChatInput = ({
   setMessage,
   handleSendMessage,
   handleFileUpload,
+  handlePdfUpload,
   isLoading,
   isUploading
 }: ChatInputProps) => {
@@ -30,6 +32,14 @@ export const ChatInput = ({
           onChange={handleFileUpload}
           disabled={isUploading}
         />
+        <input
+          type="file"
+          id="pdf-upload"
+          accept=".pdf"
+          className="hidden"
+          onChange={handlePdfUpload}
+          disabled={isUploading}
+        />
         <Button
           variant="ghost"
           size="icon"
@@ -38,6 +48,15 @@ export const ChatInput = ({
           disabled={isUploading}
         >
           <Camera className="h-5 w-5 text-muted-foreground" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex-shrink-0"
+          onClick={() => document.getElementById('pdf-upload')?.click()}
+          disabled={isUploading}
+        >
+          <FileText className="h-5 w-5 text-muted-foreground" />
         </Button>
         <Input
           placeholder="Ask me anything about pediatric care..."
