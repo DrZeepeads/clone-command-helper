@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
+import { SearchResults } from "@/components/SearchResults";
 
 interface Message {
   type: 'user' | 'bot';
@@ -29,6 +30,8 @@ const Index = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,6 +45,37 @@ const Index = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
+        body: { query }
+      });
+
+      if (searchError) {
+        console.error('Error searching knowledge base:', searchError);
+        throw searchError;
+      }
+
+      console.log('Search results:', searchData);
+      setSearchResults(searchData.results || []);
+    } catch (error) {
+      console.error('Error during search:', error);
+      toast({
+        title: "Search failed",
+        description: "Failed to search the knowledge base. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,27 +107,14 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      console.log('Searching knowledge base with query:', userMessage);
+      // First, search the knowledge base
+      await handleSearch(userMessage);
       
-      const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
-        body: { query: userMessage }
-      });
-
-      if (searchError) {
-        console.error('Error searching knowledge base:', searchError);
-        throw searchError;
-      }
-
-      console.log('Search results received:', searchData);
-      const results: SearchResult[] = searchData.results || [];
-      console.log('Number of results found:', results.length);
-      console.log('Results:', results);
-
-      console.log('Sending to medical-qa with results:', { query: userMessage, searchResults: results });
+      console.log('Sending to medical-qa with results:', { query: userMessage, searchResults });
       const { data, error } = await supabase.functions.invoke('medical-qa', {
         body: { 
           query: userMessage,
-          searchResults: results 
+          searchResults 
         },
       });
 
@@ -141,6 +162,7 @@ const Index = () => {
                 </div>
               </div>
             )}
+            <SearchResults results={searchResults} isLoading={isSearching} />
             <div ref={messagesEndRef} />
           </div>
         </main>
