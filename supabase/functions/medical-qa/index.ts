@@ -28,7 +28,7 @@ serve(async (req) => {
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('JADVE_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -46,7 +46,7 @@ serve(async (req) => {
     if (!openAIResponse.ok) {
       const error = await openAIResponse.json()
       console.error('❌ OpenAI API error:', error)
-      throw new Error('Failed to get response from OpenAI')
+      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`)
     }
 
     const aiData = await openAIResponse.json()
