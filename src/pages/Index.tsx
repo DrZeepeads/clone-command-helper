@@ -6,9 +6,10 @@ import { SearchResults } from "@/components/SearchResults";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MenuBar } from "@/components/MenuBar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { toast } from "sonner";
 
 const Index = () => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Array<{type: 'user' | 'bot', content: string}>>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -23,12 +24,14 @@ const Index = () => {
 
       if (error) {
         console.error('Error searching knowledge:', error);
+        toast.error('Error searching knowledge base');
         return;
       }
 
       setSearchResults(results?.results || []);
     } catch (error) {
       console.error('Error in search:', error);
+      toast.error('Failed to search knowledge base');
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +42,7 @@ const Index = () => {
     
     try {
       setIsLoading(true);
-      const newMessage = { type: 'user', content: currentMessage };
+      const newMessage = { type: 'user' as const, content: currentMessage };
       setMessages(prev => [...prev, newMessage]);
       setCurrentMessage("");
 
@@ -60,14 +63,16 @@ const Index = () => {
 
       if (error) {
         console.error('Error getting response:', error);
+        toast.error('Failed to get response');
         return;
       }
 
-      const aiMessage = { type: 'bot', content: responseData.answer };
+      const aiMessage = { type: 'bot' as const, content: responseData.answer };
       setMessages(prev => [...prev, aiMessage]);
 
     } catch (error) {
       console.error('Error in chat:', error);
+      toast.error('Failed to process message');
     } finally {
       setIsLoading(false);
     }
@@ -81,8 +86,10 @@ const Index = () => {
       setIsUploading(true);
       // Handle file upload logic here
       console.log("File upload not implemented yet");
+      toast.info('File upload not implemented yet');
     } catch (error) {
       console.error('Error uploading file:', error);
+      toast.error('Failed to upload file');
     } finally {
       setIsUploading(false);
     }
@@ -100,25 +107,23 @@ const Index = () => {
             {/* Main chat area */}
             <div className="flex-1 flex flex-col">
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message, index) => (
+                {messages.map((msg, index) => (
                   <ChatMessage 
                     key={index} 
-                    type={message.type} 
-                    content={message.content} 
+                    type={msg.type} 
+                    content={msg.content} 
                   />
                 ))}
               </div>
               
-              <div className="p-4 border-t">
-                <ChatInput 
-                  message={currentMessage}
-                  setMessage={setCurrentMessage}
-                  handleSendMessage={handleSendMessage}
-                  handleFileUpload={handleFileUpload}
-                  isLoading={isLoading}
-                  isUploading={isUploading}
-                />
-              </div>
+              <ChatInput 
+                message={currentMessage}
+                setMessage={setCurrentMessage}
+                handleSendMessage={handleSendMessage}
+                handleFileUpload={handleFileUpload}
+                isLoading={isLoading}
+                isUploading={isUploading}
+              />
             </div>
 
             {/* Search results sidebar */}
