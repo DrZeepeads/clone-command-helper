@@ -46,51 +46,6 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
-      toast({
-        title: "Invalid file",
-        description: "Please upload a PDF file.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      console.log('📄 Uploading PDF:', file.name);
-      
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const { data, error } = await supabase.functions.invoke('process-pdf', {
-        body: formData,
-      });
-
-      if (error) {
-        console.error('❌ Error processing PDF:', error);
-        throw error;
-      }
-
-      console.log('✅ PDF processed successfully:', data);
-
-      toast({
-        title: "PDF uploaded successfully",
-        description: "The PDF has been added to the knowledge base.",
-      });
-    } catch (error) {
-      console.error('❌ Error uploading PDF:', error);
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your PDF.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const handleSearch = async (query: string) => {
     console.log('🔍 Starting search with query:', query);
     if (!query.trim()) {
@@ -232,7 +187,6 @@ const Index = () => {
           setMessage={setMessage}
           handleSendMessage={handleSendMessage}
           handleFileUpload={handleFileUpload}
-          handlePdfUpload={handlePdfUpload}
           isLoading={isLoading}
           isUploading={isUploading}
         />
