@@ -24,7 +24,7 @@ serve(async (req) => {
 
     console.log('🔄 Executing search_pediatric_knowledge function...')
     
-    // Call the search function without embeddings for now
+    // Call the search function
     const { data: results, error } = await supabaseClient.rpc(
       'search_pediatric_knowledge',
       { search_query: query }
