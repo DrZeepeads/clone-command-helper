@@ -44,16 +44,13 @@
   <body>
     <div id="root"></div>
     
-    <!-- Load GPT Engineer script first with proper CORS attributes -->
+    <!-- Load GPT Engineer script -->
     <script 
       src="https://cdn.gpteng.co/gptengineer.js" 
-      type="module" 
-      crossorigin="anonymous"
-      integrity="sha384-"
-      referrerpolicy="origin"
+      type="module"
     ></script>
     
-    <!-- Load main application script after GPT Engineer -->
+    <!-- Load main application script -->
     <script type="module" src="/src/main.tsx"></script>
     
     <!-- Service Worker Registration -->
