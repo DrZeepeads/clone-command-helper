@@ -24,22 +24,22 @@ const Index = () => {
     console.log("Handling search with query:", query); // Debug log
     try {
       setIsLoading(true);
-      const response = await supabase.functions.invoke('search-knowledge', {
+      const { data, error } = await supabase.functions.invoke('search-knowledge', {
         body: { query },
         headers: {
           'Content-Type': 'application/json'
         }
       });
 
-      console.log("Search API response:", response); // Debug log
+      console.log("Search API response:", { data, error }); // Debug log
 
-      if (response.error) {
-        console.error('Search error details:', response.error);
+      if (error) {
+        console.error('Search error details:', error);
         toast.error('Error searching knowledge base');
         return;
       }
 
-      setSearchResults(response.data?.results || []);
+      setSearchResults(data?.results || []);
     } catch (error) {
       console.error('Search error full details:', error);
       toast.error('Failed to search knowledge base');
@@ -74,28 +74,28 @@ const Index = () => {
 
       // Search for relevant context
       console.log("Fetching search context..."); // Debug log
-      const searchResponse = await supabase.functions.invoke('search-knowledge', {
+      const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
         body: { query: currentMessage },
         headers: {
           'Content-Type': 'application/json'
         }
       });
 
-      console.log("Search context response:", searchResponse); // Debug log
+      console.log("Search context response:", { data: searchData, error: searchError }); // Debug log
 
-      if (searchResponse.error) {
-        console.error('Search context error:', searchResponse.error);
+      if (searchError) {
+        console.error('Search context error:', searchError);
         toast.error('Failed to get context');
         return;
       }
 
-      const context = searchResponse.data?.results?.map((r: any) => r.content).join('\n') || '';
+      const context = searchData?.results?.map((r: any) => r.content).join('\n') || '';
 
       let shouldRetry = true;
       while (shouldRetry && retryCount < MAX_RETRIES) {
         // Get AI response
         console.log("Requesting AI response..."); // Debug log
-        const aiResponse = await supabase.functions.invoke('medical-qa', {
+        const { data: aiData, error: aiError } = await supabase.functions.invoke('medical-qa', {
           body: { 
             query: currentMessage,
             context
@@ -105,26 +105,27 @@ const Index = () => {
           }
         });
 
-        console.log("AI response full details:", aiResponse); // Debug log
+        console.log("AI response full details:", { data: aiData, error: aiError }); // Debug log
 
-        if (aiResponse.error) {
-          if (aiResponse.status === 503) {
+        if (aiError) {
+          const errorMessage = aiError.message || '';
+          if (errorMessage.toLowerCase().includes('loading')) {
             shouldRetry = await handleModelLoading();
             if (!shouldRetry) return;
             continue;
           }
-          console.error('AI response error:', aiResponse.error);
+          console.error('AI response error:', aiError);
           toast.error('Failed to get response');
           return;
         }
 
-        if (!aiResponse.data?.response) {
-          console.error('Invalid AI response format:', aiResponse.data);
+        if (!aiData?.response) {
+          console.error('Invalid AI response format:', aiData);
           toast.error('Received invalid response format');
           return;
         }
 
-        const aiMessage = { type: 'bot' as const, content: aiResponse.data.response };
+        const aiMessage = { type: 'bot' as const, content: aiData.response };
         setMessages(prev => [...prev, aiMessage]);
         shouldRetry = false;
       }
