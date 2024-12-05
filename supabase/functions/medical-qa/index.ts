@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query, userId } = await req.json()
+    const { query } = await req.json()
     console.log('Received query:', query)
 
     // Create Supabase client
@@ -67,18 +67,15 @@ serve(async (req) => {
     console.log('Generated response:', response)
 
     // Store the Q&A interaction
-    if (userId) {
-      const { error: insertError } = await supabaseClient
-        .from('medical_queries')
-        .insert({
-          user_id: userId,
-          query: query,
-          response: response
-        })
+    const { error: insertError } = await supabaseClient
+      .from('medical_queries')
+      .insert({
+        query: query,
+        response: response
+      })
 
-      if (insertError) {
-        console.error('Error storing query:', insertError)
-      }
+    if (insertError) {
+      console.error('Error storing query:', insertError)
     }
 
     return new Response(

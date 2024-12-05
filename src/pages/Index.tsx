@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MenuBar } from "@/components/MenuBar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Camera, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Message {
   type: 'user' | 'bot';
@@ -21,6 +22,7 @@ const Index = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
@@ -29,6 +31,10 @@ const Index = () => {
       }
     });
   }, [navigate]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,15 +67,17 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const userId = user?.id;
-
+      console.log('Sending message to medical-qa function:', userMessage);
       const { data, error } = await supabase.functions.invoke('medical-qa', {
-        body: { query: userMessage, userId },
+        body: { query: userMessage },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error from medical-qa function:', error);
+        throw error;
+      }
 
+      console.log('Received response:', data);
       setMessages(prev => [...prev, { type: 'bot', content: data.response }]);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -85,7 +93,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen w-full bg-gradient-to-b from-white to-gray-50 flex flex-col">
+      <div className="min-h-screen w-full bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
         <MenuBar />
         <AppSidebar />
         
@@ -95,11 +103,12 @@ const Index = () => {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`p-4 rounded-lg ${
-                  msg.type === 'user'
-                    ? 'bg-primary text-primary-foreground ml-auto max-w-[80%]'
-                    : 'bg-muted mr-auto max-w-[80%]'
-                }`}
+                className={cn(
+                  "p-4 rounded-lg max-w-[80%]",
+                  msg.type === 'user' 
+                    ? "bg-primary text-primary-foreground ml-auto" 
+                    : "bg-muted mr-auto"
+                )}
               >
                 {msg.content}
               </div>
@@ -113,11 +122,12 @@ const Index = () => {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         </main>
 
         {/* Footer Chat Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg p-4">
           <div className="max-w-3xl mx-auto flex gap-4 items-center">
             <input
               type="file"
@@ -134,7 +144,7 @@ const Index = () => {
               onClick={() => document.getElementById('photo-upload')?.click()}
               disabled={isUploading}
             >
-              <Camera className="h-5 w-5 text-gray-500" />
+              <Camera className="h-5 w-5 text-muted-foreground" />
             </Button>
             <Input
               placeholder="Ask me anything about pediatric care..."
