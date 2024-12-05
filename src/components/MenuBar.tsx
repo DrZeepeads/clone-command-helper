@@ -31,20 +31,20 @@ export const MenuBar = () => {
                   <Menu className="h-5 w-5" />
                 </MenubarTrigger>
                 <MenubarContent className="min-w-[320px]">
-                  <MenubarItem className="flex items-center gap-2">
+                  <MenubarItem className="flex items-center gap-2 p-3">
                     <img 
                       src="/lovable-uploads/16cb4f6f-aec8-411b-a3e2-4e5db51158e3.png" 
                       alt="NelsonBot Logo" 
-                      className="w-6 h-6"
+                      className="w-8 h-8"
                     />
-                    <span className="font-semibold">NelsonBot</span>
+                    <span className="font-semibold text-lg">NelsonBot</span>
                   </MenubarItem>
-                  <MenubarItem className="text-sm text-gray-500">
+                  <MenubarItem className="text-sm text-gray-500 px-3 py-2">
                     Your Pediatric Assistant
                   </MenubarItem>
                   <MenubarSeparator />
                   <MenubarItem 
-                    className="flex items-center gap-2 cursor-pointer"
+                    className="flex items-center gap-2 cursor-pointer p-3"
                     onClick={viewHistory}
                   >
                     <Clock className="h-4 w-4" />
@@ -83,10 +83,10 @@ export const MenuBar = () => {
               <img 
                 src="/lovable-uploads/16cb4f6f-aec8-411b-a3e2-4e5db51158e3.png" 
                 alt="NelsonBot Logo" 
-                className="w-8 h-8"
+                className="w-10 h-10 object-contain"
               />
               <div className="hidden sm:flex flex-col">
-                <span className="font-semibold text-lg">NelsonBot</span>
+                <span className="font-semibold text-lg leading-tight">NelsonBot</span>
                 <span className="text-xs text-gray-500">Your Pediatric Assistant</span>
               </div>
             </div>
