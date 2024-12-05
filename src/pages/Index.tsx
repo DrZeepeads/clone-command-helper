@@ -21,20 +21,24 @@ const Index = () => {
     console.log("Handling search with query:", query); // Debug log
     try {
       setIsLoading(true);
-      const { data: results, error } = await supabase.functions.invoke('search-knowledge', {
-        body: { query }
+      const response = await supabase.functions.invoke('search-knowledge', {
+        body: { query },
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (error) {
-        console.error('Error searching knowledge:', error);
+      console.log("Search API response:", response); // Debug log
+
+      if (response.error) {
+        console.error('Search error details:', response.error);
         toast.error('Error searching knowledge base');
         return;
       }
 
-      console.log("Search results:", results); // Debug log
-      setSearchResults(results?.results || []);
+      setSearchResults(response.data?.results || []);
     } catch (error) {
-      console.error('Error in search:', error);
+      console.error('Search error full details:', error);
       toast.error('Failed to search knowledge base');
     } finally {
       setIsLoading(false);
@@ -44,7 +48,7 @@ const Index = () => {
   const handleSendMessage = async () => {
     if (!currentMessage.trim()) return;
     
-    console.log("Sending message:", currentMessage); // Debug log
+    console.log("Attempting to send message:", currentMessage); // Debug log
     
     try {
       setIsLoading(true);
@@ -54,47 +58,54 @@ const Index = () => {
 
       // Search for relevant context
       console.log("Fetching search context..."); // Debug log
-      const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
-        body: { query: currentMessage }
+      const searchResponse = await supabase.functions.invoke('search-knowledge', {
+        body: { query: currentMessage },
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (searchError) {
-        console.error('Error getting search context:', searchError);
+      console.log("Search context response:", searchResponse); // Debug log
+
+      if (searchResponse.error) {
+        console.error('Search context error:', searchResponse.error);
         toast.error('Failed to get context');
         return;
       }
 
-      console.log("Search context received:", searchData); // Debug log
-      const context = searchData?.results?.map((r: any) => r.content).join('\n') || '';
+      const context = searchResponse.data?.results?.map((r: any) => r.content).join('\n') || '';
 
       // Get AI response
       console.log("Requesting AI response..."); // Debug log
-      const { data: responseData, error: aiError } = await supabase.functions.invoke('medical-qa', {
+      const aiResponse = await supabase.functions.invoke('medical-qa', {
         body: { 
           query: currentMessage,
           context
+        },
+        headers: {
+          'Content-Type': 'application/json'
         }
       });
 
-      if (aiError) {
-        console.error('Error getting AI response:', aiError);
+      console.log("AI response full details:", aiResponse); // Debug log
+
+      if (aiResponse.error) {
+        console.error('AI response error:', aiResponse.error);
         toast.error('Failed to get response');
         return;
       }
 
-      console.log("AI response received:", responseData); // Debug log
-      
-      if (!responseData?.response) {
-        console.error('Invalid response format:', responseData);
+      if (!aiResponse.data?.response) {
+        console.error('Invalid AI response format:', aiResponse.data);
         toast.error('Received invalid response format');
         return;
       }
 
-      const aiMessage = { type: 'bot' as const, content: responseData.response };
+      const aiMessage = { type: 'bot' as const, content: aiResponse.data.response };
       setMessages(prev => [...prev, aiMessage]);
 
     } catch (error) {
-      console.error('Error in chat:', error);
+      console.error('Full error details:', error);
       toast.error('Failed to process message');
     } finally {
       setIsLoading(false);
@@ -107,10 +118,10 @@ const Index = () => {
 
     try {
       setIsUploading(true);
-      console.log("File upload attempted:", file.name); // Debug log
+      console.log("Attempting file upload:", file.name); // Debug log
       toast.info('File upload not implemented yet');
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('File upload error:', error);
       toast.error('Failed to upload file');
     } finally {
       setIsUploading(false);
