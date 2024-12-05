@@ -22,6 +22,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
+    console.log('Executing search_pediatric_knowledge with query:', query)
+    
     // Call the search function
     const { data: results, error } = await supabaseClient.rpc(
       'search_pediatric_knowledge',
@@ -33,6 +35,7 @@ serve(async (req) => {
       throw error
     }
 
+    console.log('Search results:', results)
     console.log(`Found ${results?.length || 0} matching entries`)
 
     return new Response(

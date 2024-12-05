@@ -76,7 +76,7 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      console.log('Searching knowledge base:', userMessage);
+      console.log('Searching knowledge base with query:', userMessage);
       
       // First, search the knowledge base
       const { data: searchData, error: searchError } = await supabase.functions.invoke('search-knowledge', {
@@ -88,10 +88,13 @@ const Index = () => {
         throw searchError;
       }
 
-      console.log('Search results:', searchData);
+      console.log('Search results received:', searchData);
       const results: SearchResult[] = searchData.results || [];
+      console.log('Number of results found:', results.length);
+      console.log('Results:', results);
 
       // Then, get AI response using the medical-qa function
+      console.log('Sending to medical-qa with results:', { query: userMessage, searchResults: results });
       const { data, error } = await supabase.functions.invoke('medical-qa', {
         body: { 
           query: userMessage,
