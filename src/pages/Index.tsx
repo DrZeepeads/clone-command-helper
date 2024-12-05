@@ -61,11 +61,6 @@ const Index = () => {
         {/* Footer Chat Bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
           <div className="max-w-7xl mx-auto flex gap-4 items-center">
-            <img 
-              src="/lovable-uploads/16cb4f6f-aec8-411b-a3e2-4e5db51158e3.png" 
-              alt="NelsonBot Logo" 
-              className="w-8 h-8 object-contain"
-            />
             <input
               type="file"
               id="photo-upload"
