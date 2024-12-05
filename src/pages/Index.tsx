@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -50,26 +49,6 @@ const Index = () => {
             <p className="text-gray-600 text-lg">
               Get instant access to reliable medical information and personalized health insights
             </p>
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mt-8">
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="w-full flex items-center gap-2 h-auto py-4"
-            >
-              <MessageCircle className="w-5 h-5" />
-              Ask about symptoms
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="w-full flex items-center gap-2 h-auto py-4"
-            >
-              <MessageCircle className="w-5 h-5" />
-              Get treatment info
-            </Button>
           </div>
         </div>
 
