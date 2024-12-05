@@ -21,7 +21,7 @@ const Index = () => {
       <MenuBar />
       
       {/* Main Content */}
-      <main className="flex flex-col items-center justify-between min-h-screen pt-20 pb-4 px-4 max-w-7xl mx-auto">
+      <main className="flex flex-col items-center justify-between min-h-[calc(100vh-64px)] pt-20 pb-4 px-4 max-w-7xl mx-auto">
         {/* Logo and Welcome Section */}
         <div className="flex-1 flex flex-col items-center justify-center w-full gap-8 animate-fade-in">
           <img 
@@ -60,7 +60,7 @@ const Index = () => {
               },
             }}
             providers={[]}
-            redirectTo={`${window.location.origin}/dashboard`}
+            redirectTo={window.location.origin + "/dashboard"}
           />
         </div>
       </main>
