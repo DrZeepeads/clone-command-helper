@@ -79,10 +79,10 @@ const Index = () => {
         <div className="flex-1 flex flex-col">
           <MenuBar />
           
-          <div className="flex-1 flex overflow-hidden pt-16">
+          <div className="flex-1 flex mt-16">
             {/* Main chat area */}
-            <div className="flex-1 flex flex-col relative">
-              <div className="absolute inset-0 overflow-y-auto p-4 space-y-4 pb-24">
+            <div className="flex-1 flex flex-col relative h-[calc(100vh-4rem)]">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
                 {messages.map((msg, index) => (
                   <ChatMessage 
                     key={index} 
