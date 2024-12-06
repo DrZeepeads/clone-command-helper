@@ -42,12 +42,10 @@ const Index = () => {
           const aiMessage = { type: 'bot' as const, content: response };
           setMessages(prev => [...prev, aiMessage]);
           shouldRetry = false;
-        } else {
-          return;
         }
       }
     } catch (error) {
-      console.error('Full error details:', error);
+      console.error('Error:', error);
       toast.error('Failed to process message');
     } finally {
       setRetryCount(0);
@@ -71,38 +69,40 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        <div className="flex flex-1">
-          <div className="w-80 border-r">
-            <div className="p-4">
-              <h2 className="font-semibold mb-4">Search Results</h2>
-              <SearchResults results={searchResults} isLoading={isLoading} />
-            </div>
-          </div>
-          
-          <div className="flex-1 flex flex-col">
-            <MenuBar />
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="max-w-3xl mx-auto space-y-4">
-                {messages.map((msg, index) => (
-                  <ChatMessage 
-                    key={index} 
-                    type={msg.type} 
-                    content={msg.content} 
-                  />
-                ))}
+        <div className="flex-1 flex flex-col">
+          <MenuBar />
+          <div className="flex flex-1 overflow-hidden">
+            <div className="w-80 border-r bg-card">
+              <div className="p-4">
+                <h2 className="font-semibold mb-4 text-card-foreground">Search Results</h2>
+                <SearchResults results={searchResults} isLoading={isLoading} />
               </div>
             </div>
-            <div className="p-4 border-t">
-              <ChatInput 
-                message={currentMessage}
-                setMessage={setCurrentMessage}
-                handleSendMessage={handleSendMessage}
-                handleFileUpload={handleFileUpload}
-                isLoading={isLoading}
-                isUploading={isUploading}
-              />
+            
+            <div className="flex-1 flex flex-col">
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="max-w-3xl mx-auto space-y-4">
+                  {messages.map((msg, index) => (
+                    <ChatMessage 
+                      key={index} 
+                      type={msg.type} 
+                      content={msg.content} 
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 border-t bg-card">
+                <ChatInput 
+                  message={currentMessage}
+                  setMessage={setCurrentMessage}
+                  handleSendMessage={handleSendMessage}
+                  handleFileUpload={handleFileUpload}
+                  isLoading={isLoading}
+                  isUploading={isUploading}
+                />
+              </div>
             </div>
           </div>
         </div>
