@@ -14,18 +14,29 @@ serve(async (req) => {
   }
 
   try {
-    const { query, context } = await req.json()
-    console.log('📝 Received query:', query)
-    console.log('🔍 Using context:', context)
+    // Validate request body
+    const requestData = await req.json().catch((e) => {
+      console.error('Failed to parse request JSON:', e);
+      throw new Error('Invalid JSON in request body');
+    });
 
-    // Get Hugging Face API key
-    const huggingfaceKey = Deno.env.get('HUGGINGFACE_API_KEY')
-    if (!huggingfaceKey) {
-      throw new Error('Hugging Face API key not found')
+    const { query, context } = requestData;
+    if (!query) {
+      throw new Error('Query is required');
     }
 
-    // Get answer from Hugging Face
-    console.log('🤖 Sending request to Hugging Face...')
+    console.log('📝 Received query:', query);
+    console.log('🔍 Using context:', context);
+
+    // Get and validate Hugging Face API key
+    const huggingfaceKey = Deno.env.get('HUGGINGFACE_API_KEY');
+    if (!huggingfaceKey) {
+      console.error('❌ Hugging Face API key not found');
+      throw new Error('Hugging Face API key not configured');
+    }
+
+    // Send request to Hugging Face
+    console.log('🤖 Sending request to Hugging Face...');
     const hfResponse = await fetch(
       'https://api-inference.huggingface.co/models/deepset/roberta-base-squad2',
       {
@@ -41,23 +52,29 @@ serve(async (req) => {
           }
         }),
       }
-    )
+    );
 
+    // Handle non-200 responses from Hugging Face
     if (!hfResponse.ok) {
-      const error = await hfResponse.json()
-      console.error('❌ Hugging Face API error:', error)
-      throw new Error(error.error || 'Error from Hugging Face API')
+      const errorData = await hfResponse.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('❌ Hugging Face API error:', errorData);
+      throw new Error(errorData.error || 'Error from Hugging Face API');
     }
 
-    const aiData = await hfResponse.json()
-    console.log('✅ Hugging Face response:', aiData)
+    // Parse Hugging Face response
+    const aiData = await hfResponse.json().catch((e) => {
+      console.error('Failed to parse Hugging Face response:', e);
+      throw new Error('Invalid response from Hugging Face API');
+    });
+
+    console.log('✅ Hugging Face response:', aiData);
 
     if (!aiData.answer) {
-      throw new Error('Invalid response format from Hugging Face API')
+      throw new Error('Invalid response format from Hugging Face API');
     }
 
     // Format and return the response
-    const response = `Based on the available medical knowledge: ${aiData.answer}`
+    const response = `Based on the available medical knowledge: ${aiData.answer}`;
     
     return new Response(
       JSON.stringify({ response }),
@@ -67,11 +84,12 @@ serve(async (req) => {
           'Content-Type': 'application/json' 
         } 
       }
-    )
+    );
 
   } catch (error) {
-    console.error('❌ Error in medical-qa function:', error)
+    console.error('❌ Error in medical-qa function:', error);
     
+    // Ensure we always return a properly formatted error response
     return new Response(
       JSON.stringify({ 
         error: error.message || 'An unexpected error occurred',
@@ -84,6 +102,6 @@ serve(async (req) => {
           'Content-Type': 'application/json' 
         } 
       }
-    )
+    );
   }
 })
