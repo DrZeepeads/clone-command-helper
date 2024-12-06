@@ -24,7 +24,6 @@ const Index = () => {
       setMessages(prev => [...prev, newMessage]);
       setCurrentMessage("");
 
-      // Search for relevant context
       const searchResults = await handleSearch(currentMessage);
       const context = searchResults?.map(r => r.content).join('\n') || '';
 
@@ -47,7 +46,6 @@ const Index = () => {
           return;
         }
       }
-
     } catch (error) {
       console.error('Full error details:', error);
       toast.error('Failed to process message');
@@ -73,25 +71,20 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-background">
+      <div className="flex h-screen">
         <AppSidebar />
-        
-        {/* Left side - Search Results */}
-        <div className="w-80 border-r bg-muted/30">
-          <div className="p-4 space-y-4">
-            <div className="font-semibold">Search Results</div>
-            <SearchResults results={searchResults} isLoading={isLoading} />
+        <div className="flex flex-1">
+          <div className="w-80 border-r">
+            <div className="p-4">
+              <h2 className="font-semibold mb-4">Search Results</h2>
+              <SearchResults results={searchResults} isLoading={isLoading} />
+            </div>
           </div>
-        </div>
-
-        {/* Main content area */}
-        <div className="flex-1 flex flex-col">
-          <MenuBar />
           
-          {/* Chat area */}
-          <main className="flex-1 relative mt-16">
-            <div className="absolute inset-0 overflow-y-auto px-4 pb-32">
-              <div className="max-w-3xl mx-auto space-y-4 py-4">
+          <div className="flex-1 flex flex-col">
+            <MenuBar />
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="max-w-3xl mx-auto space-y-4">
                 {messages.map((msg, index) => (
                   <ChatMessage 
                     key={index} 
@@ -101,16 +94,17 @@ const Index = () => {
                 ))}
               </div>
             </div>
-            
-            <ChatInput 
-              message={currentMessage}
-              setMessage={setCurrentMessage}
-              handleSendMessage={handleSendMessage}
-              handleFileUpload={handleFileUpload}
-              isLoading={isLoading}
-              isUploading={isUploading}
-            />
-          </main>
+            <div className="p-4 border-t">
+              <ChatInput 
+                message={currentMessage}
+                setMessage={setCurrentMessage}
+                handleSendMessage={handleSendMessage}
+                handleFileUpload={handleFileUpload}
+                isLoading={isLoading}
+                isUploading={isUploading}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </SidebarProvider>
