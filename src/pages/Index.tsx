@@ -70,15 +70,12 @@ const Index = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        {/* Left Sidebar - Collapsible Navigation */}
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
-          {/* Top Header Bar */}
           <MenuBar />
           
           <div className="flex flex-1 overflow-hidden">
-            {/* Search Results Panel */}
             <div className="w-80 border-r bg-[#F6F8FA]">
               <div className="p-4">
                 <h2 className="font-semibold mb-4 text-[#1A1F2C]">Search Results</h2>
@@ -86,9 +83,7 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Main Chat Area */}
             <div className="flex-1 flex flex-col bg-white">
-              {/* Chat Messages */}
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="max-w-3xl mx-auto space-y-4">
                   {messages.map((msg, index) => (
@@ -101,7 +96,6 @@ const Index = () => {
                 </div>
               </div>
               
-              {/* Chat Input Area */}
               <div className="p-4 border-t bg-white shadow-lg">
                 <ChatInput 
                   message={currentMessage}
