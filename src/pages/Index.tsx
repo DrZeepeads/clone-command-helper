@@ -10,8 +10,6 @@ import { Message, handleModelLoading, sendMessage } from "@/services/chatService
 import { toast } from "sonner";
 
 const Index = () => {
-  console.log("Index component initializing"); // Debug log
-
   const [messages, setMessages] = useState<Message[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -21,16 +19,12 @@ const Index = () => {
   const handleSendMessage = async () => {
     if (!currentMessage.trim()) return;
     
-    console.log("Attempting to send message:", currentMessage); // Debug log
-    
     try {
       const newMessage = { type: 'user' as const, content: currentMessage };
       setMessages(prev => [...prev, newMessage]);
-      console.log("Updated messages after user input:", messages); // Debug log
       setCurrentMessage("");
 
       // Search for relevant context
-      console.log("Fetching search context..."); // Debug log
       const searchResults = await handleSearch(currentMessage);
       const context = searchResults?.map(r => r.content).join('\n') || '';
 
@@ -48,7 +42,6 @@ const Index = () => {
         if (response) {
           const aiMessage = { type: 'bot' as const, content: response };
           setMessages(prev => [...prev, aiMessage]);
-          console.log("Updated messages after AI response:", messages); // Debug log
           shouldRetry = false;
         } else {
           return;
@@ -69,7 +62,6 @@ const Index = () => {
 
     try {
       setIsUploading(true);
-      console.log("Attempting file upload:", file.name); // Debug log
       toast.info('File upload not implemented yet');
     } catch (error) {
       console.error('File upload error:', error);
@@ -78,8 +70,6 @@ const Index = () => {
       setIsUploading(false);
     }
   };
-
-  console.log("Current messages in state:", messages); // Debug log
 
   return (
     <SidebarProvider>
@@ -91,8 +81,8 @@ const Index = () => {
           
           <div className="flex-1 flex">
             {/* Main chat area */}
-            <div className="flex-1 flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 mt-16">
+            <div className="flex-1 flex flex-col relative pt-16"> {/* Added relative and pt-16 */}
+              <div className="absolute inset-0 top-16 overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
                   <ChatMessage 
                     key={index} 
