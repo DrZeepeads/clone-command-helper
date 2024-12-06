@@ -7,7 +7,7 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import { Menu, Clock } from "lucide-react";
+import { Menu, Search, User, HelpCircle, Settings } from "lucide-react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,35 +15,20 @@ import { supabase } from "@/integrations/supabase/client";
 export const MenuBar = () => {
   const navigate = useNavigate();
 
-  const viewHistory = () => {
-    navigate("/history");
-  };
-
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
+      <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Left side - Menu and Title */}
+          {/* Logo & Brand */}
           <div className="flex items-center gap-4">
             <Menubar className="border-none bg-transparent">
               <MenubarMenu>
-                <MenubarTrigger className="cursor-pointer p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <MenubarTrigger className="cursor-pointer p-2 hover:bg-gray-100 rounded-lg">
                   <Menu className="h-5 w-5" />
                 </MenubarTrigger>
-                <MenubarContent className="min-w-[320px]">
+                <MenubarContent>
                   <MenubarItem className="flex items-center gap-2 p-3">
                     <span className="font-semibold text-lg">NelsonBot</span>
-                  </MenubarItem>
-                  <MenubarItem className="text-sm text-gray-500 px-3 py-2">
-                    Your Pediatric Assistant
-                  </MenubarItem>
-                  <MenubarSeparator />
-                  <MenubarItem 
-                    className="flex items-center gap-2 cursor-pointer p-3"
-                    onClick={viewHistory}
-                  >
-                    <Clock className="h-4 w-4" />
-                    <span>View History</span>
                   </MenubarItem>
                   <MenubarSeparator />
                   <div className="p-4">
@@ -54,33 +39,40 @@ export const MenuBar = () => {
                         variables: {
                           default: {
                             colors: {
-                              brand: '#E91E63',
-                              brandAccent: '#D81B60',
+                              brand: '#1A1F2C',
+                              brandAccent: '#6E59A5',
                             }
                           }
-                        },
-                        className: {
-                          container: 'auth-container',
-                          button: 'auth-button',
-                          input: 'auth-input',
-                        },
+                        }
                       }}
                       providers={[]}
-                      redirectTo={window.location.origin + "/dashboard"}
                     />
-                    <p className="text-sm text-gray-500 text-center mt-4">
-                      Don't have an account? Sign up
-                    </p>
                   </div>
                 </MenubarContent>
               </MenubarMenu>
             </Menubar>
             
-            {/* Title and Slogan */}
-            <div className="flex flex-col">
-              <span className="font-semibold text-lg leading-tight">NelsonBot</span>
-              <span className="text-xs text-gray-500">Your Pediatric Assistant</span>
+            {/* Brand Name */}
+            <div className="flex items-center">
+              <span className="text-xl font-semibold text-[#1A1F2C]">NelsonBot</span>
+              <span className="ml-2 text-sm text-gray-500">Pediatric Assistant</span>
             </div>
+          </div>
+
+          {/* Right Side Navigation */}
+          <div className="flex items-center gap-4">
+            <button className="p-2 hover:bg-gray-100 rounded-full">
+              <Search className="h-5 w-5 text-gray-600" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 rounded-full">
+              <HelpCircle className="h-5 w-5 text-gray-600" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 rounded-full">
+              <Settings className="h-5 w-5 text-gray-600" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 rounded-full">
+              <User className="h-5 w-5 text-gray-600" />
+            </button>
           </div>
         </div>
       </div>
