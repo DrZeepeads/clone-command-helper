@@ -79,17 +79,19 @@ const Index = () => {
         <div className="flex-1 flex flex-col">
           <MenuBar />
           
-          <div className="flex-1 flex mt-16">
+          <main className="flex-1 flex mt-16">
             {/* Main chat area */}
-            <div className="flex-1 flex flex-col relative h-[calc(100vh-4rem)]">
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-                {messages.map((msg, index) => (
-                  <ChatMessage 
-                    key={index} 
-                    type={msg.type} 
-                    content={msg.content} 
-                  />
-                ))}
+            <div className="flex-1 relative">
+              <div className="absolute inset-0 overflow-y-auto px-4 pb-32">
+                <div className="max-w-3xl mx-auto space-y-4 py-4">
+                  {messages.map((msg, index) => (
+                    <ChatMessage 
+                      key={index} 
+                      type={msg.type} 
+                      content={msg.content} 
+                    />
+                  ))}
+                </div>
               </div>
               
               <ChatInput 
@@ -103,13 +105,13 @@ const Index = () => {
             </div>
 
             {/* Search results sidebar */}
-            <div className="w-80 border-l bg-muted/30 p-4 overflow-y-auto">
-              <div className="space-y-4">
+            <div className="w-80 border-l bg-muted/30 overflow-y-auto">
+              <div className="p-4 space-y-4">
                 <div className="font-semibold">Search Results</div>
                 <SearchResults results={searchResults} isLoading={isLoading} />
               </div>
             </div>
-          </div>
+          </main>
         </div>
       </div>
     </SidebarProvider>
