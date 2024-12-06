@@ -81,8 +81,8 @@ const Index = () => {
           
           <div className="flex-1 flex">
             {/* Main chat area */}
-            <div className="flex-1 flex flex-col relative pt-16"> {/* Added relative and pt-16 */}
-              <div className="absolute inset-0 top-16 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 flex flex-col h-[calc(100vh-64px)] mt-16">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
                   <ChatMessage 
                     key={index} 
