@@ -76,41 +76,40 @@ const Index = () => {
       <div className="flex h-screen bg-background">
         <AppSidebar />
         
+        {/* Left side - Search Results */}
+        <div className="w-80 border-r bg-muted/30">
+          <div className="p-4 space-y-4">
+            <div className="font-semibold">Search Results</div>
+            <SearchResults results={searchResults} isLoading={isLoading} />
+          </div>
+        </div>
+
+        {/* Main content area */}
         <div className="flex-1 flex flex-col">
           <MenuBar />
           
-          <main className="flex-1 flex mt-16">
-            {/* Main chat area */}
-            <div className="flex-1 relative">
-              <div className="absolute inset-0 overflow-y-auto px-4 pb-32">
-                <div className="max-w-3xl mx-auto space-y-4 py-4">
-                  {messages.map((msg, index) => (
-                    <ChatMessage 
-                      key={index} 
-                      type={msg.type} 
-                      content={msg.content} 
-                    />
-                  ))}
-                </div>
-              </div>
-              
-              <ChatInput 
-                message={currentMessage}
-                setMessage={setCurrentMessage}
-                handleSendMessage={handleSendMessage}
-                handleFileUpload={handleFileUpload}
-                isLoading={isLoading}
-                isUploading={isUploading}
-              />
-            </div>
-
-            {/* Search results sidebar */}
-            <div className="w-80 border-l bg-muted/30 overflow-y-auto">
-              <div className="p-4 space-y-4">
-                <div className="font-semibold">Search Results</div>
-                <SearchResults results={searchResults} isLoading={isLoading} />
+          {/* Chat area */}
+          <main className="flex-1 relative mt-16">
+            <div className="absolute inset-0 overflow-y-auto px-4 pb-32">
+              <div className="max-w-3xl mx-auto space-y-4 py-4">
+                {messages.map((msg, index) => (
+                  <ChatMessage 
+                    key={index} 
+                    type={msg.type} 
+                    content={msg.content} 
+                  />
+                ))}
               </div>
             </div>
+            
+            <ChatInput 
+              message={currentMessage}
+              setMessage={setCurrentMessage}
+              handleSendMessage={handleSendMessage}
+              handleFileUpload={handleFileUpload}
+              isLoading={isLoading}
+              isUploading={isUploading}
+            />
           </main>
         </div>
       </div>
