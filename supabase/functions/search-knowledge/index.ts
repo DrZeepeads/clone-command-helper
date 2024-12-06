@@ -18,16 +18,19 @@ serve(async (req) => {
     console.log('🔍 Received search query:', query)
 
     // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabaseClient = createClient(supabaseUrl, supabaseKey)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase credentials')
+    }
 
+    const supabaseClient = createClient(supabaseUrl, supabaseKey)
     console.log('🔄 Executing search_pediatric_knowledge function...')
     
-    // Call the search function with the correct parameter name
     const { data: results, error } = await supabaseClient.rpc(
       'search_pediatric_knowledge',
-      { search_query: query }  // Match the parameter name expected by the database function
+      { search_query: query }
     )
 
     if (error) {
@@ -40,15 +43,26 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ results }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     )
   } catch (error) {
     console.error('❌ Error in search-knowledge function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'An unexpected error occurred',
+        details: error.toString()
+      }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
       }
     )
   }
