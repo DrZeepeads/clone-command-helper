@@ -43,17 +43,9 @@
 
   <body>
     <div id="root"></div>
-    
-    <!-- Load GPT Engineer script -->
-    <script 
-      src="https://cdn.gpteng.co/gptengineer.js" 
-      type="module"
-    ></script>
-    
-    <!-- Load main application script -->
+    <!-- GPT Engineer script must come before main.tsx -->
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
