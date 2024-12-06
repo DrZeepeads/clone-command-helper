@@ -6,22 +6,19 @@ export interface Message {
   content: string;
 }
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000;
-
 export const handleModelLoading = async (retryCount: number) => {
-  if (retryCount >= MAX_RETRIES) {
+  if (retryCount >= 3) {
     toast.error('Model is still loading after multiple attempts. Please try again later.');
     return null;
   }
 
   toast.info('Model is loading, retrying in a moment...');
-  await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+  await new Promise(resolve => setTimeout(resolve, 2000));
   return true;
 };
 
 export const sendMessage = async (
-  message: string, 
+  query: string, 
   context: string, 
   retryCount: number
 ): Promise<string | null> => {
@@ -29,7 +26,7 @@ export const sendMessage = async (
   
   const { data: aiData, error: aiError } = await supabase.functions.invoke('medical-qa', {
     body: { 
-      query: message,
+      query,
       context
     },
     headers: {
@@ -40,10 +37,6 @@ export const sendMessage = async (
   console.log("AI response full details:", { data: aiData, error: aiError }); // Debug log
 
   if (aiError) {
-    const errorMessage = aiError.message || '';
-    if (errorMessage.toLowerCase().includes('loading')) {
-      return 'loading';
-    }
     console.error('AI response error:', aiError);
     toast.error('Failed to get response');
     return null;
